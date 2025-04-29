@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Box, RotateCcw, ArrowRight, RefreshCcw } from 'lucide-react';
+import { Shield, Box, RotateCcw, ArrowRight, RefreshCcw, Eye } from 'lucide-react';
 
 interface GameControlsProps {
   onNextLevel: () => void;
