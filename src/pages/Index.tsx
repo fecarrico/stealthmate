@@ -1,12 +1,21 @@
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import GameBoard from '@/components/GameBoard';
 import GameControls from '@/components/GameControls';
 import GameMessage from '@/components/GameMessage';
+import LevelEditor from '@/components/LevelEditor';
 import { useGameState } from '@/hooks/useGameState';
 import { toast } from "@/components/ui/sonner";
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { saveCustomLevel, LevelData, loadLevelFromCode } from '@/utils/levelData';
+import { Input } from '@/components/ui/input';
+import { Shield, Box } from 'lucide-react';
 
 const Index = () => {
+  const [mode, setMode] = useState<'game' | 'editor'>('game');
+  const [levelCode, setLevelCode] = useState<string>('');
+  
   const {
     gameState,
     movePlayer,
@@ -17,10 +26,13 @@ const Index = () => {
     levelComplete,
     allLevelsComplete,
     totalSteps,
+    loadCustomLevel,
   } = useGameState();
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      if (mode !== 'game' || !gameState) return;
+      
       switch (event.key) {
         case 'ArrowUp':
           movePlayer('up');
@@ -47,7 +59,7 @@ const Index = () => {
           break;
       }
     },
-    [movePlayer, undoMove]
+    [movePlayer, undoMove, mode, gameState]
   );
 
   useEffect(() => {
@@ -69,46 +81,113 @@ const Index = () => {
     }
   }, [levelComplete, gameState?.level]);
 
+  const handleTestLevel = (level: LevelData) => {
+    loadCustomLevel(level);
+    setMode('game');
+    toast.success("Testing custom level");
+  };
+  
+  const handleSaveLevel = (level: LevelData) => {
+    saveCustomLevel(level);
+  };
+  
+  const handleLoadCode = () => {
+    if (levelCode.trim()) {
+      try {
+        const level = loadLevelFromCode(levelCode);
+        if (level) {
+          loadCustomLevel(level);
+          setMode('game');
+          toast.success("Custom level loaded!");
+        } else {
+          toast.error("Invalid level code");
+        }
+      } catch (error) {
+        toast.error("Failed to load level from code");
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <h1 className="text-3xl font-bold mb-4 text-primary">Chess Hide & Seek</h1>
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
+      <h1 className="text-4xl font-bold mb-4 text-amber-500 flex items-center gap-2">
+        <Shield className="h-8 w-8" />
+        StealthMate
+      </h1>
       
-      {!gameState ? (
-        <p>Loading game...</p>
-      ) : (
-        <div className="flex flex-col md:flex-row gap-6 items-start w-full max-w-4xl">
-          <div className="flex-1">
-            <div className="bg-white p-4 rounded-lg shadow-lg">
-              <div className="w-full aspect-square max-w-lg mx-auto">
-                <GameBoard board={gameState.board} sightLines={gameState.sightLines} />
-              </div>
-            </div>
-            
-            {gameState.message && (
-              <div className="mt-4">
-                <GameMessage 
-                  message={gameState.message}
-                  isError={gameState.gameOver}
-                  isSuccess={gameState.victory} 
-                />
-              </div>
-            )}
-          </div>
-          
-          <GameControls
-            onNextLevel={nextLevel}
-            onResetLevel={resetLevel}
-            onResetGame={resetGame}
-            isLevelComplete={levelComplete}
-            isAllLevelsComplete={allLevelsComplete}
-            level={gameState.level}
-            steps={gameState.steps}
-            totalSteps={totalSteps}
-          />
+      <Tabs
+        defaultValue="game"
+        value={mode}
+        onValueChange={(value) => setMode(value as 'game' | 'editor')}
+        className="w-full max-w-6xl"
+      >
+        <div className="flex justify-center mb-4">
+          <TabsList className="bg-zinc-800">
+            <TabsTrigger value="game" className="data-[state=active]:bg-amber-500">Play Game</TabsTrigger>
+            <TabsTrigger value="editor" className="data-[state=active]:bg-amber-500">Level Editor</TabsTrigger>
+          </TabsList>
         </div>
-      )}
+        
+        <TabsContent value="game">
+          {!gameState ? (
+            <p className="text-gray-300">Loading game...</p>
+          ) : (
+            <div className="flex flex-col md:flex-row gap-6 items-start w-full">
+              <div className="flex-1">
+                <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800">
+                  <div className="w-full aspect-square max-w-lg mx-auto">
+                    <GameBoard board={gameState.board} sightLines={gameState.sightLines} />
+                  </div>
+                </div>
+                
+                {gameState.message && (
+                  <div className="mt-4">
+                    <GameMessage 
+                      message={gameState.message}
+                      isError={gameState.gameOver}
+                      isSuccess={gameState.victory} 
+                    />
+                  </div>
+                )}
+                
+                <div className="mt-4">
+                  <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800 flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        placeholder="Enter level code..." 
+                        value={levelCode}
+                        onChange={(e) => setLevelCode(e.target.value)}
+                        className="flex-grow bg-zinc-800 border-zinc-700"
+                      />
+                      <Button onClick={handleLoadCode}>Load Level</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <GameControls
+                onNextLevel={nextLevel}
+                onResetLevel={resetLevel}
+                onResetGame={resetGame}
+                isLevelComplete={levelComplete}
+                isAllLevelsComplete={allLevelsComplete}
+                level={gameState.level}
+                steps={gameState.steps}
+                totalSteps={totalSteps}
+              />
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="editor">
+          <LevelEditor 
+            onTestLevel={handleTestLevel}
+            onSave={handleSaveLevel}
+          />
+        </TabsContent>
+      </Tabs>
       
-      <div className="mt-8 text-center text-sm text-gray-500">
+      <div className="mt-8 text-center text-sm text-gray-400">
         <p>Move with arrow keys. Press Z to undo.</p>
         <p>Capture all kings without being spotted by the enemy pieces.</p>
       </div>

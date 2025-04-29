@@ -14,14 +14,14 @@ const GameMessage: React.FC<GameMessageProps> = ({
 }) => {
   if (!message) return null;
   
-  let classes = 'py-2 px-4 rounded-md text-white text-center font-medium animate-slide-in';
+  let classes = 'py-2 px-4 rounded-md text-white text-center font-medium animate-slide-in shadow-lg border';
   
   if (isError) {
-    classes += ' bg-red-500';
+    classes += ' bg-red-900/80 border-red-700';
   } else if (isSuccess) {
-    classes += ' bg-green-500';
+    classes += ' bg-green-900/80 border-green-700';
   } else {
-    classes += ' bg-blue-500';
+    classes += ' bg-zinc-800/80 border-zinc-700';
   }
   
   return (

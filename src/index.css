@@ -82,7 +82,7 @@
 }
 
 .game-board {
-  @apply grid border-2 border-gray-800 shadow-lg;
+  @apply grid border-2 border-zinc-700 shadow-lg;
 }
 
 .game-piece {
@@ -90,5 +90,54 @@
 }
 
 .sight-line {
-  @apply absolute bg-red-500/20 z-0;
+  @apply absolute bg-red-700/40 z-0;
+}
+
+/* Warehouse/Dungeon Theme */
+.bg-board-light {
+  @apply bg-zinc-700;
+}
+
+.bg-board-dark {
+  @apply bg-zinc-800;
+}
+
+/* Pieces */
+.bg-player {
+  @apply bg-emerald-600;
+}
+
+.bg-king {
+  @apply bg-amber-600;
+}
+
+.bg-enemy-rook {
+  @apply bg-red-800;
+}
+
+.bg-enemy-bishop {
+  @apply bg-blue-800;
+}
+
+.bg-enemy-queen {
+  @apply bg-purple-800;
+}
+
+.bg-box {
+  @apply bg-zinc-600;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
 }

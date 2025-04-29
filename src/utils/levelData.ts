@@ -16,6 +16,7 @@ export interface GameCell {
 
 export interface LevelData {
   id: number;
+  name?: string;
   size: [number, number];
   playerStart: [number, number];
   kings: [number, number][];
@@ -30,6 +31,7 @@ const levels: LevelData[] = [
   // Level 1 - 5x5 board with basic setup
   {
     id: 1,
+    name: "Beginner's Chamber",
     size: [5, 5],
     playerStart: [0, 0],
     kings: [[4, 4]],
@@ -46,6 +48,7 @@ const levels: LevelData[] = [
   // Level 2 - 6x6 board with more enemies
   {
     id: 2,
+    name: "Warehouse Heist",
     size: [6, 6],
     playerStart: [0, 0],
     kings: [[5, 5]],
@@ -64,6 +67,7 @@ const levels: LevelData[] = [
   // Level 3 - 7x7 board with multiple kings
   {
     id: 3,
+    name: "Dungeon Depths",
     size: [7, 7],
     playerStart: [0, 0],
     kings: [
@@ -84,5 +88,38 @@ const levels: LevelData[] = [
     ],
   },
 ];
+
+// Function to load custom level from level code
+export const loadLevelFromCode = (code: string): LevelData | null => {
+  try {
+    const levelData = JSON.parse(atob(code));
+    return levelData;
+  } catch (error) {
+    console.error("Failed to parse level code:", error);
+    return null;
+  }
+};
+
+// Function to save custom level to local storage
+export const saveCustomLevel = (level: LevelData): void => {
+  try {
+    const customLevels = getCustomLevels();
+    customLevels.push(level);
+    localStorage.setItem('stealthmate_custom_levels', JSON.stringify(customLevels));
+  } catch (error) {
+    console.error("Failed to save custom level:", error);
+  }
+};
+
+// Function to get all custom levels from local storage
+export const getCustomLevels = (): LevelData[] => {
+  try {
+    const customLevels = localStorage.getItem('stealthmate_custom_levels');
+    return customLevels ? JSON.parse(customLevels) : [];
+  } catch (error) {
+    console.error("Failed to get custom levels:", error);
+    return [];
+  }
+};
 
 export default levels;

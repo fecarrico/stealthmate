@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import levels, { LevelData, CellType, GameCell } from '../utils/levelData';
 import {
@@ -24,6 +25,7 @@ interface GameState {
     playerPosition: [number, number];
     steps: number;
   }[];
+  isCustomLevel?: boolean;
 }
 
 // Custom hook for game state management
@@ -123,6 +125,37 @@ export const useGameState = () => {
       });
       
       setLevelComplete(false);
+    },
+    [initializeBoard, calculateAllSightLines]
+  );
+
+  // Load a custom level
+  const loadCustomLevel = useCallback(
+    (levelData: LevelData) => {
+      const board = initializeBoard(levelData);
+      const sightLines = calculateAllSightLines(board);
+      
+      setGameState({
+        level: levelData.id,
+        board,
+        playerPosition: levelData.playerStart,
+        steps: 0,
+        sightLines,
+        gameOver: false,
+        victory: false,
+        message: '',
+        isCustomLevel: true,
+        history: [
+          {
+            board: JSON.parse(JSON.stringify(board)),
+            playerPosition: [...levelData.playerStart] as [number, number],
+            steps: 0,
+          },
+        ],
+      });
+      
+      setLevelComplete(false);
+      setAllLevelsComplete(false);
     },
     [initializeBoard, calculateAllSightLines]
   );
@@ -259,6 +292,12 @@ export const useGameState = () => {
   const nextLevel = useCallback(() => {
     if (!gameState) return;
     
+    // If it's a custom level, just reset the same level
+    if (gameState.isCustomLevel) {
+      resetLevel();
+      return;
+    }
+    
     const nextLevelNumber = gameState.level + 1;
     if (nextLevelNumber <= levels.length) {
       loadLevel(nextLevelNumber);
@@ -270,8 +309,26 @@ export const useGameState = () => {
   // Reset current level
   const resetLevel = useCallback(() => {
     if (!gameState) return;
-    loadLevel(gameState.level);
-  }, [gameState, loadLevel]);
+    
+    if (gameState.isCustomLevel && gameState.history.length > 0) {
+      // Reset to initial state of custom level
+      const initialState = gameState.history[0];
+      
+      setGameState({
+        ...gameState,
+        board: JSON.parse(JSON.stringify(initialState.board)),
+        playerPosition: [...initialState.playerPosition],
+        steps: 0,
+        sightLines: calculateAllSightLines(initialState.board),
+        gameOver: false,
+        victory: false,
+        message: '',
+        history: [initialState],
+      });
+    } else {
+      loadLevel(gameState.level);
+    }
+  }, [gameState, loadLevel, calculateAllSightLines]);
 
   // Reset game completely
   const resetGame = useCallback(() => {
@@ -290,5 +347,6 @@ export const useGameState = () => {
     levelComplete,
     allLevelsComplete,
     totalSteps,
+    loadCustomLevel,
   };
 };
