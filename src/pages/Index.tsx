@@ -4,17 +4,20 @@ import GameBoard from '@/components/GameBoard';
 import GameControls from '@/components/GameControls';
 import GameMessage from '@/components/GameMessage';
 import LevelEditor from '@/components/LevelEditor';
+import VictoryPopup from '@/components/VictoryPopup';
+import LevelSelector from '@/components/LevelSelector';
 import { useGameState } from '@/hooks/useGameState';
 import { toast } from "@/components/ui/sonner";
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { saveCustomLevel, LevelData, loadLevelFromCode } from '@/utils/levelData';
 import { Input } from '@/components/ui/input';
-import { Shield, Box } from 'lucide-react';
+import { Shield, Box, Eye } from 'lucide-react';
 
 const Index = () => {
   const [mode, setMode] = useState<'game' | 'editor'>('game');
   const [levelCode, setLevelCode] = useState<string>('');
+  const [showSightLines, setShowSightLines] = useState<boolean>(false);
   
   const {
     gameState,
@@ -27,6 +30,10 @@ const Index = () => {
     allLevelsComplete,
     totalSteps,
     loadCustomLevel,
+    bestScores,
+    showVictory,
+    closeVictory,
+    loadLevel
   } = useGameState();
 
   const handleKeyDown = useCallback(
@@ -108,6 +115,10 @@ const Index = () => {
     }
   };
 
+  const handleSelectLevel = (levelId: number) => {
+    loadLevel(levelId);
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
       <h1 className="text-4xl font-bold mb-4 text-amber-500 flex items-center gap-2">
@@ -122,9 +133,9 @@ const Index = () => {
         className="w-full max-w-6xl"
       >
         <div className="flex justify-center mb-4">
-          <TabsList className="bg-zinc-800">
-            <TabsTrigger value="game" className="data-[state=active]:bg-amber-500">Play Game</TabsTrigger>
-            <TabsTrigger value="editor" className="data-[state=active]:bg-amber-500">Level Editor</TabsTrigger>
+          <TabsList className="bg-zinc-800 shadow-lg">
+            <TabsTrigger value="game" className="data-[state=active]:bg-amber-500 text-lg px-6">Play Game</TabsTrigger>
+            <TabsTrigger value="editor" className="data-[state=active]:bg-amber-500 text-lg px-6">Level Editor</TabsTrigger>
           </TabsList>
         </div>
         
@@ -135,8 +146,30 @@ const Index = () => {
             <div className="flex flex-col md:flex-row gap-6 items-start w-full">
               <div className="flex-1">
                 <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800">
-                  <div className="w-full aspect-square max-w-lg mx-auto">
-                    <GameBoard board={gameState.board} sightLines={gameState.sightLines} />
+                  <div className="w-full max-w-lg mx-auto">
+                    {/* Ninja Instinct Button */}
+                    <div className="mb-2 flex justify-center">
+                      <button
+                        className="ninja-instinct-button"
+                        onMouseDown={() => setShowSightLines(gameState.ninjaInstinct > 0)}
+                        onMouseUp={() => setShowSightLines(false)}
+                        onMouseLeave={() => setShowSightLines(false)}
+                        disabled={gameState.ninjaInstinct <= 0}
+                      >
+                        <Eye className="h-5 w-5" />
+                        Ninja Instinct
+                        <span className="ninja-instinct-counter">{gameState.ninjaInstinct}</span>
+                      </button>
+                    </div>
+                    
+                    {/* Game Board */}
+                    <div className="aspect-square">
+                      <GameBoard 
+                        board={gameState.board} 
+                        sightLines={gameState.sightLines}
+                        showSightLines={showSightLines}
+                      />
+                    </div>
                   </div>
                 </div>
                 
@@ -159,22 +192,34 @@ const Index = () => {
                         onChange={(e) => setLevelCode(e.target.value)}
                         className="flex-grow bg-zinc-800 border-zinc-700"
                       />
-                      <Button onClick={handleLoadCode}>Load Level</Button>
+                      <Button onClick={handleLoadCode} className="game-button bg-amber-600 hover:bg-amber-700">
+                        Load Level
+                      </Button>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <GameControls
-                onNextLevel={nextLevel}
-                onResetLevel={resetLevel}
-                onResetGame={resetGame}
-                isLevelComplete={levelComplete}
-                isAllLevelsComplete={allLevelsComplete}
-                level={gameState.level}
-                steps={gameState.steps}
-                totalSteps={totalSteps}
-              />
+              <div className="w-full max-w-sm">
+                <GameControls
+                  onNextLevel={nextLevel}
+                  onResetLevel={resetLevel}
+                  onResetGame={resetGame}
+                  isLevelComplete={levelComplete}
+                  isAllLevelsComplete={allLevelsComplete}
+                  level={gameState.level}
+                  steps={gameState.steps}
+                  totalSteps={totalSteps}
+                />
+                
+                <div className="mt-4 flex justify-center">
+                  <LevelSelector 
+                    onSelectLevel={handleSelectLevel}
+                    currentLevel={gameState.level}
+                    bestScores={bestScores}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </TabsContent>
@@ -187,9 +232,19 @@ const Index = () => {
         </TabsContent>
       </Tabs>
       
+      {showVictory && gameState && (
+        <VictoryPopup
+          steps={gameState.steps}
+          onNextLevel={nextLevel}
+          onReplayLevel={resetLevel}
+          levelName={gameState.levelName}
+        />
+      )}
+      
       <div className="mt-8 text-center text-sm text-gray-400">
         <p>Move with arrow keys. Press Z to undo.</p>
         <p>Capture all kings without being spotted by the enemy pieces.</p>
+        <p>Hold the Ninja Instinct button to see enemy sight lines (3 uses per level).</p>
       </div>
     </div>
   );

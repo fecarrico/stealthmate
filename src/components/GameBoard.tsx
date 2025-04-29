@@ -10,6 +10,7 @@ interface GameBoardProps {
   editorMode?: boolean;
   onCellClick?: (row: number, col: number) => void;
   selectedCell?: [number, number] | null;
+  showSightLines?: boolean;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({ 
@@ -17,7 +18,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   sightLines, 
   editorMode = false,
   onCellClick,
-  selectedCell
+  selectedCell,
+  showSightLines = false
 }) => {
   // Safely handle the case when board is undefined or empty
   if (!board || board.length === 0) {
@@ -66,7 +68,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             onClick={editorMode && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
             data-position={`${rowIndex},${colIndex}`}
           >
-            {isInSightLine(rowIndex, colIndex) && !editorMode && (
+            {isInSightLine(rowIndex, colIndex) && !editorMode && showSightLines && (
               <div className="sight-line absolute inset-0" />
             )}
             {cell.type !== 'empty' && <GamePiece type={cell.type} />}

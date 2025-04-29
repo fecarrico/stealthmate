@@ -28,20 +28,20 @@ export interface LevelData {
 }
 
 const levels: LevelData[] = [
-  // Level 1 - 5x5 board with basic setup
+  // Level 1 - Custom Level from the provided code
   {
     id: 1,
-    name: "Beginner's Chamber",
+    name: "First Mission",
     size: [5, 5],
     playerStart: [0, 0],
     kings: [[4, 4]],
     enemies: [
-      { type: CellType.ROOK, position: [1, 2] },
-      { type: CellType.BISHOP, position: [3, 1] },
+      { type: CellType.BISHOP, position: [0, 4] },
+      { type: CellType.BISHOP, position: [4, 0] },
     ],
     boxes: [
       [2, 1],
-      [2, 3],
+      [1, 2],
     ],
   },
   
@@ -85,6 +85,34 @@ const levels: LevelData[] = [
       [4, 4],
       [5, 5],
       [1, 6],
+    ],
+  },
+  
+  // Level 4 - 8x8 chess-like board with challenging setup
+  {
+    id: 4,
+    name: "Grand Master",
+    size: [8, 8],
+    playerStart: [0, 0],
+    kings: [
+      [7, 7],
+      [7, 0],
+      [0, 7],
+    ],
+    enemies: [
+      { type: CellType.ROOK, position: [1, 1] },
+      { type: CellType.BISHOP, position: [6, 1] },
+      { type: CellType.QUEEN, position: [3, 3] },
+      { type: CellType.ROOK, position: [3, 7] },
+      { type: CellType.BISHOP, position: [6, 6] },
+    ],
+    boxes: [
+      [1, 2],
+      [2, 1],
+      [4, 4],
+      [5, 5],
+      [6, 3],
+      [3, 6],
     ],
   },
 ];

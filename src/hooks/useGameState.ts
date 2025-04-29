@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import levels, { LevelData, CellType, GameCell } from '../utils/levelData';
+import { getCustomLevelFromCode } from '../utils/levelHelper';
 import {
   getNewPosition,
   calculateLineOfSight,
@@ -20,6 +21,8 @@ interface GameState {
   gameOver: boolean;
   victory: boolean;
   message: string;
+  ninjaInstinct: number;
+  levelName: string;
   history: {
     board: GameCell[][];
     playerPosition: [number, number];
@@ -34,6 +37,36 @@ export const useGameState = () => {
   const [levelComplete, setLevelComplete] = useState(false);
   const [allLevelsComplete, setAllLevelsComplete] = useState(false);
   const [totalSteps, setTotalSteps] = useState<number[]>([]);
+  const [bestScores, setBestScores] = useState<Record<number, number>>({});
+  const [showVictory, setShowVictory] = useState(false);
+
+  // Load best scores from localStorage
+  useEffect(() => {
+    try {
+      const savedScores = localStorage.getItem('stealthmate_best_scores');
+      if (savedScores) {
+        setBestScores(JSON.parse(savedScores));
+      }
+    } catch (error) {
+      console.error("Error loading best scores:", error);
+    }
+  }, []);
+
+  // Save best scores to localStorage
+  const saveBestScore = useCallback((levelId: number, steps: number) => {
+    const currentBest = bestScores[levelId];
+    
+    if (!currentBest || steps < currentBest) {
+      const newBestScores = { ...bestScores, [levelId]: steps };
+      setBestScores(newBestScores);
+      
+      try {
+        localStorage.setItem('stealthmate_best_scores', JSON.stringify(newBestScores));
+      } catch (error) {
+        console.error("Error saving best score:", error);
+      }
+    }
+  }, [bestScores]);
 
   // Initialize the board from level data
   const initializeBoard = useCallback((levelData: LevelData): GameCell[][] => {
@@ -115,6 +148,8 @@ export const useGameState = () => {
         gameOver: false,
         victory: false,
         message: '',
+        ninjaInstinct: 3, // Initialize with 3 ninja instinct uses
+        levelName: levelData.name || `Level ${levelNumber}`,
         history: [
           {
             board: JSON.parse(JSON.stringify(board)),
@@ -125,6 +160,7 @@ export const useGameState = () => {
       });
       
       setLevelComplete(false);
+      setShowVictory(false);
     },
     [initializeBoard, calculateAllSightLines]
   );
@@ -144,6 +180,8 @@ export const useGameState = () => {
         gameOver: false,
         victory: false,
         message: '',
+        ninjaInstinct: 3, // Initialize with 3 ninja instinct uses
+        levelName: levelData.name || `Custom Level`,
         isCustomLevel: true,
         history: [
           {
@@ -155,13 +193,23 @@ export const useGameState = () => {
       });
       
       setLevelComplete(false);
+      setShowVictory(false);
       setAllLevelsComplete(false);
     },
     [initializeBoard, calculateAllSightLines]
   );
 
-  // Initialize game
+  // Initialize game with the custom level
   useEffect(() => {
+    // Try to load the custom level first
+    const customLevelCode = "eyJpZCI6MTc0NTk1MTkxMjI0NywibmFtZSI6IkN1c3RvbSBMZXZlbCIsInNpemUiOls1LDVdLCJwbGF5ZXJTdGFydCI6WzAsMF0sImtpbmdzIjpbWzQsNF1dLCJlbmVtaWVzIjpbeyJ0eXBlIjoiYmlzaG9wIiwicG9zaXRpb24iOlswLDRdfSx7InR5cGUiOiJiaXNob3AiLCJwb3NpdGlvbiI6WzQsMF19XSwiYm94ZXMiOltbMiwxXSxbMSwyXV19";
+    const customLevel = getCustomLevelFromCode(customLevelCode);
+    
+    if (customLevel) {
+      // Replace the first level with the custom level
+      levels[0] = customLevel;
+    }
+    
     loadLevel(1);
   }, [loadLevel]);
 
@@ -262,11 +310,13 @@ export const useGameState = () => {
 
         if (victory) {
           setLevelComplete(true);
+          setShowVictory(true);
+          saveBestScore(gameState.level, steps + 1);
           setTotalSteps((prev) => [...prev, steps + 1]);
         }
       }
     },
-    [gameState, calculateAllSightLines]
+    [gameState, calculateAllSightLines, saveBestScore]
   );
 
   // Undo last move
@@ -323,11 +373,14 @@ export const useGameState = () => {
         gameOver: false,
         victory: false,
         message: '',
+        ninjaInstinct: 3, // Reset ninja instinct uses
         history: [initialState],
       });
     } else {
       loadLevel(gameState.level);
     }
+    
+    setShowVictory(false);
   }, [gameState, loadLevel, calculateAllSightLines]);
 
   // Reset game completely
@@ -335,7 +388,13 @@ export const useGameState = () => {
     loadLevel(1);
     setTotalSteps([]);
     setAllLevelsComplete(false);
+    setShowVictory(false);
   }, [loadLevel]);
+
+  // Close victory popup
+  const closeVictory = useCallback(() => {
+    setShowVictory(false);
+  }, []);
 
   return {
     gameState,
@@ -348,5 +407,9 @@ export const useGameState = () => {
     allLevelsComplete,
     totalSteps,
     loadCustomLevel,
+    bestScores,
+    showVictory,
+    closeVictory,
+    loadLevel
   };
 };

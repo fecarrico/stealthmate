@@ -89,6 +89,10 @@
   @apply absolute inset-0 flex items-center justify-center text-white font-bold z-10;
 }
 
+.game-piece span {
+  @apply text-3xl; /* Increase the size of the emoji characters */
+}
+
 .sight-line {
   @apply absolute bg-red-700/40 z-0;
 }
@@ -140,4 +144,62 @@
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+/* Level thumbnail styles */
+.level-thumbnail {
+  @apply aspect-square overflow-hidden relative border-2 border-zinc-700;
+}
+
+.level-thumbnail.selected {
+  @apply border-amber-500 ring-2 ring-amber-500;
+}
+
+/* Victory popup styles */
+.victory-popup {
+  @apply fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4;
+  animation: fade-in 0.3s ease-out;
+}
+
+.victory-content {
+  @apply bg-zinc-900 border-2 border-amber-500 rounded-lg p-6 max-w-md w-full text-center;
+  animation: scale-in 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Button styles improvements */
+.game-button {
+  @apply font-medium text-lg rounded-md shadow-lg transition-all duration-200 flex items-center justify-center gap-2;
+}
+
+/* Ninja instinct styles */
+.ninja-instinct-button {
+  @apply bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2 rounded-md shadow-lg transition-all flex items-center justify-center gap-2;
+}
+
+.ninja-instinct-button:active {
+  @apply bg-purple-900 scale-95;
+}
+
+.ninja-instinct-counter {
+  @apply bg-purple-900 text-white font-bold px-3 py-1 rounded-full text-xs;
 }
