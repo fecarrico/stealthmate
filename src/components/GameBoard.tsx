@@ -19,8 +19,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
   onCellClick,
   selectedCell
 }) => {
+  // Safely handle the case when board is undefined or empty
+  if (!board || board.length === 0) {
+    return <div className="game-board empty-board bg-zinc-800 w-full h-full flex items-center justify-center">
+      <p className="text-zinc-400">No board data available</p>
+    </div>;
+  }
+
   const rows = board.length;
-  const cols = board[0].length;
+  const cols = board[0]?.length || 0; // Use optional chaining to safely access board[0]
   
   // Check if a position is in sight line
   const isInSightLine = (row: number, col: number): boolean => {
@@ -32,6 +39,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return editorMode && selectedCell !== null && 
       selectedCell[0] === row && selectedCell[1] === col;
   };
+
+  // If we have rows but no columns, return a message
+  if (cols === 0) {
+    return <div className="game-board empty-board bg-zinc-800 w-full h-full flex items-center justify-center">
+      <p className="text-zinc-400">Invalid board data</p>
+    </div>;
+  }
 
   return (
     <div 
