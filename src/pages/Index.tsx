@@ -1,18 +1,14 @@
 
 import React, { useEffect, useCallback, useState } from 'react';
-import GameBoard from '@/components/GameBoard';
-import GameControls from '@/components/GameControls';
-import GameMessage from '@/components/GameMessage';
-import LevelEditor from '@/components/LevelEditor';
-import VictoryPopup from '@/components/VictoryPopup';
-import LevelSelector from '@/components/LevelSelector';
-import { useGameState } from '@/hooks/useGameState';
 import { toast } from "@/components/ui/sonner";
-import { Button } from '@/components/ui/button';
+import { Shield } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { saveCustomLevel, LevelData, loadLevelFromCode } from '@/utils/levelData';
-import { Input } from '@/components/ui/input';
-import { Shield, Box, Eye } from 'lucide-react';
+import VictoryPopup from '@/components/VictoryPopup';
+import LevelEditor from '@/components/LevelEditor';
+import GameMode from '@/components/GameMode';
+import GameInstructions from '@/components/GameInstructions';
+import { useGameState } from '@/hooks/useGameState';
 
 const Index = () => {
   const [mode, setMode] = useState<'game' | 'editor'>('game');
@@ -145,93 +141,22 @@ const Index = () => {
         </div>
         
         <TabsContent value="game">
-          {!gameState ? (
-            <div className="text-gray-300 flex flex-col items-center">
-              <p className="mb-4">Loading game...</p>
-              <Button onClick={resetGame} className="bg-amber-600 hover:bg-amber-700">
-                Start Game
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col md:flex-row gap-6 items-start w-full">
-              <div className="flex-1">
-                <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800">
-                  <div className="w-full max-w-lg mx-auto">
-                    {/* Ninja Instinct Button */}
-                    <div className="mb-2 flex justify-center">
-                      <button
-                        className="ninja-instinct-button"
-                        onMouseDown={() => setShowSightLines(gameState.ninjaInstinct > 0)}
-                        onMouseUp={() => setShowSightLines(false)}
-                        onMouseLeave={() => setShowSightLines(false)}
-                        disabled={gameState.ninjaInstinct <= 0}
-                      >
-                        <Eye className="h-5 w-5" />
-                        Ninja Instinct
-                        <span className="ninja-instinct-counter">{gameState.ninjaInstinct}</span>
-                      </button>
-                    </div>
-                    
-                    {/* Game Board */}
-                    <div className="aspect-square">
-                      <GameBoard 
-                        board={gameState.board} 
-                        sightLines={gameState.sightLines}
-                        showSightLines={showSightLines}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {gameState.message && (
-                  <div className="mt-4">
-                    <GameMessage 
-                      message={gameState.message}
-                      isError={gameState.gameOver}
-                      isSuccess={gameState.victory} 
-                    />
-                  </div>
-                )}
-                
-                <div className="mt-4">
-                  <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800 flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        placeholder="Enter level code..." 
-                        value={levelCode}
-                        onChange={(e) => setLevelCode(e.target.value)}
-                        className="flex-grow bg-zinc-800 border-zinc-700"
-                      />
-                      <Button onClick={handleLoadCode} className="game-button bg-amber-600 hover:bg-amber-700">
-                        Load Level
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="w-full max-w-sm">
-                <GameControls
-                  onNextLevel={nextLevel}
-                  onResetLevel={resetLevel}
-                  onResetGame={resetGame}
-                  isLevelComplete={levelComplete}
-                  isAllLevelsComplete={allLevelsComplete}
-                  level={gameState.level}
-                  steps={gameState.steps}
-                  totalSteps={totalSteps}
-                />
-                
-                <div className="mt-4 flex justify-center">
-                  <LevelSelector 
-                    onSelectLevel={handleSelectLevel}
-                    currentLevel={gameState.level}
-                    bestScores={bestScores}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+          <GameMode 
+            gameState={gameState}
+            resetGame={resetGame}
+            showSightLines={showSightLines}
+            setShowSightLines={setShowSightLines}
+            levelCode={levelCode}
+            setLevelCode={setLevelCode}
+            handleLoadCode={handleLoadCode}
+            nextLevel={nextLevel}
+            resetLevel={resetLevel}
+            levelComplete={levelComplete}
+            allLevelsComplete={allLevelsComplete}
+            totalSteps={totalSteps}
+            bestScores={bestScores}
+            handleSelectLevel={handleSelectLevel}
+          />
         </TabsContent>
         
         <TabsContent value="editor">
@@ -251,11 +176,7 @@ const Index = () => {
         />
       )}
       
-      <div className="mt-8 text-center text-sm text-gray-400">
-        <p>Move with arrow keys. Press Z to undo.</p>
-        <p>Capture all kings without being spotted by the enemy pieces.</p>
-        <p>Hold the Ninja Instinct button to see enemy sight lines (3 uses per level).</p>
-      </div>
+      <GameInstructions />
     </div>
   );
 };
