@@ -88,6 +88,11 @@ const Index = () => {
     }
   }, [levelComplete, gameState?.level]);
 
+  // Debug log to track the gameState
+  useEffect(() => {
+    console.log("Current gameState:", gameState);
+  }, [gameState]);
+
   const handleTestLevel = (level: LevelData) => {
     loadCustomLevel(level);
     setMode('game');
@@ -141,7 +146,12 @@ const Index = () => {
         
         <TabsContent value="game">
           {!gameState ? (
-            <p className="text-gray-300">Loading game...</p>
+            <div className="text-gray-300 flex flex-col items-center">
+              <p className="mb-4">Loading game...</p>
+              <Button onClick={resetGame} className="bg-amber-600 hover:bg-amber-700">
+                Start Game
+              </Button>
+            </div>
           ) : (
             <div className="flex flex-col md:flex-row gap-6 items-start w-full">
               <div className="flex-1">

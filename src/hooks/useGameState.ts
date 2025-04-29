@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import levels, { LevelData, CellType, GameCell } from '../utils/levelData';
 import { getCustomLevelFromCode } from '../utils/levelHelper';
@@ -132,35 +131,41 @@ export const useGameState = () => {
       const levelData = levels.find((level) => level.id === levelNumber);
       
       if (!levelData) {
+        console.error(`Level ${levelNumber} not found`);
         setAllLevelsComplete(true);
         return;
       }
       
-      const board = initializeBoard(levelData);
-      const sightLines = calculateAllSightLines(board);
-      
-      setGameState({
-        level: levelNumber,
-        board,
-        playerPosition: levelData.playerStart,
-        steps: 0,
-        sightLines,
-        gameOver: false,
-        victory: false,
-        message: '',
-        ninjaInstinct: 3, // Initialize with 3 ninja instinct uses
-        levelName: levelData.name || `Level ${levelNumber}`,
-        history: [
-          {
-            board: JSON.parse(JSON.stringify(board)),
-            playerPosition: [...levelData.playerStart] as [number, number],
-            steps: 0,
-          },
-        ],
-      });
-      
-      setLevelComplete(false);
-      setShowVictory(false);
+      try {
+        const board = initializeBoard(levelData);
+        const sightLines = calculateAllSightLines(board);
+        
+        setGameState({
+          level: levelNumber,
+          board,
+          playerPosition: [...levelData.playerStart] as [number, number],
+          steps: 0,
+          sightLines,
+          gameOver: false,
+          victory: false,
+          message: '',
+          ninjaInstinct: 3,
+          levelName: levelData.name || `Level ${levelNumber}`,
+          history: [
+            {
+              board: JSON.parse(JSON.stringify(board)),
+              playerPosition: [...levelData.playerStart] as [number, number],
+              steps: 0,
+            },
+          ],
+        });
+        
+        setLevelComplete(false);
+        setShowVictory(false);
+        console.log(`Level ${levelNumber} loaded successfully`);
+      } catch (error) {
+        console.error(`Error loading level ${levelNumber}:`, error);
+      }
     },
     [initializeBoard, calculateAllSightLines]
   );
@@ -199,17 +204,26 @@ export const useGameState = () => {
     [initializeBoard, calculateAllSightLines]
   );
 
-  // Initialize game with the custom level
+  // Initialize game with the first level
   useEffect(() => {
     // Try to load the custom level first
-    const customLevelCode = "eyJpZCI6MTc0NTk1MTkxMjI0NywibmFtZSI6IkN1c3RvbSBMZXZlbCIsInNpemUiOls1LDVdLCJwbGF5ZXJTdGFydCI6WzAsMF0sImtpbmdzIjpbWzQsNF1dLCJlbmVtaWVzIjpbeyJ0eXBlIjoiYmlzaG9wIiwicG9zaXRpb24iOlswLDRdfSx7InR5cGUiOiJiaXNob3AiLCJwb3NpdGlvbiI6WzQsMF19XSwiYm94ZXMiOltbMiwxXSxbMSwyXV19";
-    const customLevel = getCustomLevelFromCode(customLevelCode);
-    
-    if (customLevel) {
-      // Replace the first level with the custom level
-      levels[0] = customLevel;
+    try {
+      const customLevelCode = "eyJpZCI6MTc0NTk1MTkxMjI0NywibmFtZSI6IkN1c3RvbSBMZXZlbCIsInNpemUiOls1LDVdLCJwbGF5ZXJTdGFydCI6WzAsMF0sImtpbmdzIjpbWzQsNF1dLCJlbmVtaWVzIjpbeyJ0eXBlIjoiYmlzaG9wIiwicG9zaXRpb24iOlswLDRdfSx7InR5cGUiOiJiaXNob3AiLCJwb3NpdGlvbiI6WzQsMF19XSwiYm94ZXMiOltbMiwxXSxbMSwyXV19";
+      console.log("Attempting to load custom level");
+      const customLevel = getCustomLevelFromCode(customLevelCode);
+      
+      if (customLevel) {
+        console.log("Custom level loaded successfully:", customLevel);
+        // Replace the first level with the custom level
+        levels[0] = customLevel;
+      } else {
+        console.error("Failed to load custom level from code");
+      }
+    } catch (error) {
+      console.error("Error loading custom level:", error);
     }
     
+    // Load the first level
     loadLevel(1);
   }, [loadLevel]);
 
@@ -385,6 +399,7 @@ export const useGameState = () => {
 
   // Reset game completely
   const resetGame = useCallback(() => {
+    console.log("Resetting game");
     loadLevel(1);
     setTotalSteps([]);
     setAllLevelsComplete(false);
