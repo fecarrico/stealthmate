@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { GameState } from './types';
 import { CellType } from '../../utils/levelData';
@@ -67,18 +68,30 @@ export const useGameMoves = (
           newBoard[newRow][newCol].type = CellType.PLAYER;
         }
 
-        // Calculate new sight lines
+        // Calculate new sight lines AFTER the player has moved
         const newSightLines = calculateAllSightLines(newBoard);
         
-        // Check if player is detected
+        // Check if player is detected in their new position (after movement is complete)
         const detected = isPlayerDetected(newPosition, newSightLines);
         
         if (detected) {
           // Game over
           return {
             ...gameState,
+            board: newBoard,
+            playerPosition: newPosition,
+            steps: steps + 1,
+            sightLines: newSightLines,
             gameOver: true,
             message: 'You were spotted! Press Z to undo your last move.',
+            history: [
+              ...history,
+              {
+                board: JSON.parse(JSON.stringify(newBoard)),
+                playerPosition: [...newPosition] as [number, number],
+                steps: steps + 1,
+              },
+            ],
           };
         }
 

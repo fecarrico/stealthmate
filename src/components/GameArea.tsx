@@ -2,36 +2,30 @@
 import React from 'react';
 import GameBoard from '@/components/GameBoard';
 import GameMessage from '@/components/GameMessage';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { GameState } from '@/hooks/game/types';
+import { Card } from '@/components/ui/card';
 
 interface GameAreaProps {
   gameState: GameState;
   showSightLines: boolean;
   setShowSightLines: (show: boolean) => void;
-  levelCode: string;
-  setLevelCode: (code: string) => void;
-  handleLoadCode: () => void;
 }
 
 const GameArea: React.FC<GameAreaProps> = ({
   gameState,
   showSightLines,
   setShowSightLines,
-  levelCode,
-  setLevelCode,
-  handleLoadCode
 }) => {
   return (
-    <div className="flex-1">
-      <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800">
-        <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-2xl">
+      <Card className="bg-zinc-900 p-6 rounded-lg shadow-lg border border-zinc-800">
+        <div className="w-full mx-auto">
           {/* Ninja Instinct Button */}
-          <div className="mb-2 flex justify-center">
-            <button
-              className="ninja-instinct-button"
+          <div className="mb-4 flex justify-center">
+            <Button
+              className="bg-purple-700 hover:bg-purple-800 text-white flex items-center gap-2 py-2 px-4"
               onMouseDown={() => setShowSightLines(gameState.ninjaInstinct > 0)}
               onMouseUp={() => setShowSightLines(false)}
               onMouseLeave={() => setShowSightLines(false)}
@@ -39,12 +33,14 @@ const GameArea: React.FC<GameAreaProps> = ({
             >
               <Eye className="h-5 w-5" />
               Ninja Instinct
-              <span className="ninja-instinct-counter">{gameState.ninjaInstinct}</span>
-            </button>
+              <span className="bg-purple-900 text-white text-xs font-bold px-3 py-1 rounded-full">
+                {gameState.ninjaInstinct}
+              </span>
+            </Button>
           </div>
           
           {/* Game Board */}
-          <div className="aspect-square ">
+          <div className="aspect-square w-full">
             <GameBoard 
               board={gameState.board} 
               sightLines={gameState.sightLines}
@@ -52,7 +48,7 @@ const GameArea: React.FC<GameAreaProps> = ({
             />
           </div>
         </div>
-      </div>
+      </Card>
       
       {gameState.message && (
         <div className="mt-4">
@@ -62,7 +58,7 @@ const GameArea: React.FC<GameAreaProps> = ({
             isSuccess={gameState.victory} 
           />
         </div>
-      )} 
+      )}
     </div>
   );
 };

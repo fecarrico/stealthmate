@@ -1,16 +1,13 @@
 
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from '../App';
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+// This is a placeholder file to avoid conflicts with main.tsx
+const Index: React.FC = () => {
+  return (
+    <div>
+      <h1>App initialized</h1>
+    </div>
+  );
+};
 
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-
-
+export default Index;

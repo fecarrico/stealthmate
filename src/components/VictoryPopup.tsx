@@ -30,7 +30,7 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
           <Button 
             onClick={onReplayLevel}
             variant="outline"
-            className="text-lg px-6 py-2"
+            className="text-lg px-6 py-2 bg-zinc-900 text-zinc-200 border-zinc-700 hover:bg-zinc-800"
           >
             Replay Level
           </Button>

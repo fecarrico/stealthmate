@@ -1,43 +1,31 @@
+
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LevelData } from '@/utils/levelData';
+import LevelEditor from '@/components/LevelEditor';
 
-interface LevelEditorProps {
-  onTestLevel: (level: LevelData) => void;
-  onSave: (level: LevelData) => void;
-}
-
-const LevelEditor: React.FC<LevelEditorProps> = ({ onTestLevel, onSave }) => {
-  const [levelName, setLevelName] = React.useState("My Level");
-  const [rows, setRows] = React.useState<number>(10);
-  const [cols, setCols] = React.useState<number>(10);
-  const [playerStart, setPlayerStart] = React.useState<[number, number]>([1, 1]);
-  const [guardStarts, setGuardStarts] = React.useState<[number, number][]>([]);
-  const [exit, setExit] = React.useState<[number, number]>([8, 8]);
-
-  const handleTest = () => {
-    onTestLevel({ levelName, rows, cols, playerStart, guardStarts, exit });
+const LevelEditorPage: React.FC = () => {
+  // Test level function
+  const handleTestLevel = (level: LevelData) => {
+    console.log("Testing level:", level);
+    // Implementation could be added here
   };
 
-  const handleSave = () => {
-    onSave({ levelName, rows, cols, playerStart, guardStarts, exit });
+  // Save level function
+  const handleSave = (level: LevelData) => {
+    console.log("Saving level:", level);
+    // Implementation could be added here
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
-      <h1>Level Editor</h1>
-      <Input type="text" placeholder="Level Name" value={levelName} onChange={(e) => setLevelName(e.target.value)} />
-      <Input type="number" placeholder="Rows" value={rows} onChange={(e) => setRows(parseInt(e.target.value))} />
-      <Input type="number" placeholder="Cols" value={cols} onChange={(e) => setCols(parseInt(e.target.value))} />
-      {/* Add more inputs for playerStart, guardStarts, exit, etc. */}
-      <div className="flex gap-4">
-        <Button onClick={handleTest} className="game-button bg-amber-600 hover:bg-amber-700">Test</Button>
-        <Button onClick={handleSave} className="game-button bg-amber-600 hover:bg-amber-700">Save</Button>
+      <h1 className="text-3xl font-bold mb-6 text-amber-500">Level Editor</h1>
+      <div className="w-full max-w-6xl">
+        <LevelEditor />
       </div>
-
-
     </div>
   );
 };
 
-export default LevelEditor;
+export default LevelEditorPage;

@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import GameArea from './GameArea';
 import { GameState } from '@/hooks/useGameState';
+
 interface GameModeProps {
   gameState: GameState;
   resetGame: () => void;
@@ -14,6 +16,7 @@ interface GameModeProps {
   allLevelsComplete: boolean;
   totalSteps: number;
 }
+
 const GameMode: React.FC<GameModeProps> = ({
   gameState,
   resetGame,
@@ -25,24 +28,15 @@ const GameMode: React.FC<GameModeProps> = ({
   allLevelsComplete,
   totalSteps,
 }) => {
-  const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center">
-      <h2 className="text-2xl font-bold mb-4 text-white">{gameState.levelName}</h2>
+      <h2 className="text-2xl font-bold mb-4 text-amber-500">{gameState.levelName}</h2>
       <GameArea
         gameState={gameState}
         showSightLines={showSightLines}
         setShowSightLines={setShowSightLines}
       />
-
-      <div className="mt-4">
-        <Button
-          onClick={() => navigate('/levels')}
-          className="game-button bg-amber-600 hover:bg-amber-700"
-        >
-          Back to level select
-        </Button>
-      </div>
+      {/* Removed the "Back to level select" button as requested */}
     </div>
   );
 };

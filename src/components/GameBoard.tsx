@@ -13,7 +13,6 @@ interface GameBoardProps {
   showSightLines?: boolean;
 }
 
-
 const GameBoard: React.FC<GameBoardProps> = ({ 
   board, 
   sightLines, 
@@ -22,8 +21,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   selectedCell,
   showSightLines = false
 }) => {
-  console.log("GameBoard: gameState", {board, sightLines, editorMode, onCellClick, selectedCell, showSightLines})
-
   // Safely handle the case when board is undefined or empty
   if (!board || board.length === 0) {
     return <div className="game-board empty-board bg-zinc-800 w-full h-full flex items-center justify-center">
@@ -54,10 +51,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <div 
-      className="game-board"
+      className="game-board w-full h-full"
       style={{ 
-        gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` 
+        display: 'grid',
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
+        gridTemplateColumns: `repeat(${cols}, 1fr)` 
       }}
     >
       {board.map((row, rowIndex) =>

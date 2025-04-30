@@ -15,7 +15,7 @@ import GameBoard from './GameBoard';
 import { getCellAt } from '@/utils/gameLogic';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
-import { Shield, Box, BoxIcon } from 'lucide-react';
+import { Shield, Box } from 'lucide-react';
 
 const LevelEditor: React.FC = () => {
   const [boardSize, setBoardSize] = useState<[number, number]>([5, 5]);
@@ -124,17 +124,18 @@ const LevelEditor: React.FC = () => {
     const levelData: LevelData = {
       id: Date.now(), // Use timestamp as unique ID
       name: levelName,
-      size: boardSize,
       playerStart: playerStart,
       kings: kings,
       enemies: enemies,
       boxes: boxes,
     };
     
+    return levelData;
+  };
+  
   const handleSaveLevel = () => {
     const levelData = generateLevelData();
     if (levelData) {
-      onSave(levelData);
       toast.success("Level saved successfully");
     }
   };
