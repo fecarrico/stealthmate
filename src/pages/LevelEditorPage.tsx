@@ -1,8 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import LevelEditor from '@/components/LevelEditor';
-import { Shield } from 'lucide-react';
 
 const LevelEditorPage: React.FC = () => {
   return (
