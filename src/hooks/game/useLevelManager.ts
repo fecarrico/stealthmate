@@ -69,30 +69,36 @@ export const useLevelManager = () => {
   // Load a custom level
   const loadCustomLevel = useCallback(
     (levelData: LevelData) => {
-      const board = initializeBoard(levelData);
-      const sightLines = calculateAllSightLines(board);
+      try {
+        console.log('useLevelManager: loadCustomLevel called with level:', levelData);
+        const board = initializeBoard(levelData);
+        const sightLines = calculateAllSightLines(board);
 
-      const gameState: GameState = {
-        level: levelData.id,
-        board,
-        playerPosition: [...levelData.playerStart] as [number, number],
-        steps: 0,
-        sightLines,
-        gameOver: false,
-        victory: false,
-        message: '',
-        ninjaInstinct: 1,
-        levelName: levelData.name || "Custom Level",
-        isCustomLevel: true,
-        history: [
-          {
-            board: JSON.parse(JSON.stringify(board)),
-            playerPosition: [...levelData.playerStart] as [number, number],
-            steps: 0
-          }
-        ]
-      };
-      return gameState;
+        const gameState: GameState = {
+          level: levelData.level || levelData.id || 0,
+          board,
+          playerPosition: [...levelData.playerStart] as [number, number],
+          steps: 0,
+          sightLines,
+          gameOver: false,
+          victory: false,
+          message: '',
+          ninjaInstinct: 3,
+          levelName: levelData.name || "Custom Level",
+          isCustomLevel: true,
+          history: [
+            {
+              board: JSON.parse(JSON.stringify(board)),
+              playerPosition: [...levelData.playerStart] as [number, number],
+              steps: 0
+            }
+          ]
+        };
+        return gameState;
+      } catch (error) {
+        console.error('Error loading custom level:', error);
+        return null;
+      }
     },
     [initializeBoard, calculateAllSightLines]
   );

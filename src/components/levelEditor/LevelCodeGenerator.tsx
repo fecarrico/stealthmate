@@ -12,17 +12,21 @@ const LevelCodeGenerator: React.FC<LevelCodeGeneratorProps> = ({ generateLevelDa
   const generateLevelCode = () => {
     const levelData = generateLevelData();
     if (levelData) {
-      const levelCode = btoa(JSON.stringify(levelData));
-      navigator.clipboard.writeText(levelCode);
-      toast.success("Level code copied to clipboard");
+      try {
+        const levelCode = btoa(JSON.stringify(levelData));
+        navigator.clipboard.writeText(levelCode);
+        toast.success("Level code copied to clipboard");
+      } catch (error) {
+        console.error("Error generating level code:", error);
+        toast.error("Failed to generate level code");
+      }
     }
   };
 
   return (
     <Button 
       onClick={generateLevelCode} 
-      className="w-full text-zinc-950"
-      variant="outline"
+      className="w-full bg-amber-600 hover:bg-amber-700 text-zinc-950 font-medium"
     >
       Generate & Copy Code
     </Button>

@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { CellType, GameCell, LevelData, saveCustomLevel } from '@/utils/levelData';
-import { getCellAt } from '@/utils/gameLogic';
 import { toast } from '@/components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
@@ -107,9 +106,24 @@ const LevelEditor: React.FC = () => {
     setBoardSize([size, size]);
   };
   
+  const validateLevel = (): boolean => {
+    // Check if player exists
+    if (playerStart[0] === -1 || playerStart[1] === -1) {
+      toast.error("Level must have a player");
+      return false;
+    }
+    
+    // Check if at least one king exists
+    if (kings.length === 0) {
+      toast.error("Level must have at least one king");
+      return false;
+    }
+    
+    return true;
+  };
+  
   const generateLevelData = (): LevelData | null => {
-    if (playerStart[0] === -1 || kings.length === 0) {
-      toast.error("Level must have a player and at least one king");
+    if (!validateLevel()) {
       return null;
     }
     

@@ -34,13 +34,36 @@ export interface LevelData {
 // Function to load custom level from level code
 export const loadLevelFromCode = (code: string): LevelData | null => {
   try {
+    if (!code || code.trim() === '') {
+      throw new Error('Empty code provided');
+    }
+    
     let levelData = JSON.parse(atob(code));
+    
+    // Ensure required fields are present
+    if (!levelData || !levelData.playerStart || !Array.isArray(levelData.kings) || !Array.isArray(levelData.enemies)) {
+      throw new Error('Invalid level data structure');
+    }
+    
     // Ensure 'boxes' field is present
-    if (levelData && !levelData.boxes && levelData.box) {
+    if (!levelData.boxes && levelData.box) {
       // Rename 'box' to 'boxes' if it exists
       levelData.boxes = levelData.box;
       delete levelData.box;
     }
+
+    // Add id if not present
+    if (!levelData.id) {
+      levelData.id = Date.now();
+    }
+    
+    // Add level number if not present
+    if (!levelData.level) {
+      levelData.level = 1000 + Date.now() % 1000;
+    }
+    
+    // Set isCustom flag
+    levelData.isCustom = true;
 
     return levelData;
   } catch (error) {
@@ -53,7 +76,18 @@ export const loadLevelFromCode = (code: string): LevelData | null => {
 export const saveCustomLevel = (level: LevelData): void => {
   try {
     const customLevels = getCustomLevels();
-    customLevels.push(level);
+    
+    // Check if level with same ID already exists
+    const existingIndex = customLevels.findIndex(l => l.id === level.id);
+    
+    if (existingIndex >= 0) {
+      // Replace existing level
+      customLevels[existingIndex] = level;
+    } else {
+      // Add new level
+      customLevels.push(level);
+    }
+    
     localStorage.setItem('stealthmate_custom_levels', JSON.stringify(customLevels));
   } catch (error) {
     console.error("Failed to save custom level:", error);

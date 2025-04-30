@@ -1,6 +1,5 @@
 
 import React, {useState, useEffect} from 'react';
-import LevelSelector from '@/components/LevelSelector';
 import { getCustomLevels, LevelData } from '@/utils/levelData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -28,8 +27,9 @@ const LevelSelectPage: React.FC = () => {
       try {
         const level = loadLevelFromCode(levelCode);
         if (level) {
-          loadCustomLevel(level);
-          navigate('/game');
+          // Save the custom level from code
+          localStorage.setItem('testing_level', JSON.stringify(level));
+          navigate('/game?mode=test');
           toast.success('Custom level loaded!');
         } else {
           toast.error('Invalid level code');
@@ -48,8 +48,14 @@ const LevelSelectPage: React.FC = () => {
   };
 
   const handleCustomLevelSelect = (level: LevelData) => {
-    loadCustomLevel(level);
-    navigate('/game');
+    try {
+      loadCustomLevel(level);
+      navigate('/game?mode=custom');
+      localStorage.setItem('testing_level', JSON.stringify(level));
+    } catch (error) {
+      console.error("Error loading custom level:", error);
+      toast.error("Failed to load custom level");
+    }
   };
   
   const levels = getLevels();
@@ -125,6 +131,10 @@ const LevelSelectPage: React.FC = () => {
                   </div>
                   <CardContent className="p-3">
                     <h3 className="text-md font-bold text-zinc-300">{level.name}</h3>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-zinc-400">Best Score:</span>
+                      <span className="text-green-400 font-bold">{bestScores[level.id] ?? "N/A"}</span>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

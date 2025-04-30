@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { GameState } from './types';
 import { useLevelManager } from './useLevelManager';
 import { useBoard } from './useBoard';
@@ -66,11 +66,10 @@ export const useGameLogic = () => {
         ]
       };
 
-      // Add to history
-      const newHistory = [...history.slice(0, currentStep + 1), newGameState];
-      setHistory(newHistory);
-      setCurrentStep(currentStep + 1);
+      // Update game state
       setGameState(newGameState);
+      setHistory([...history.slice(0, currentStep + 1), newGameState]);
+      setCurrentStep(currentStep + 1);
     } 
     // Handle box pushing
     else if (targetCell.type === CellType.BOX) {
@@ -125,11 +124,10 @@ export const useGameLogic = () => {
           ]
         };
         
-        // Add to history
-        const newHistory = [...history.slice(0, currentStep + 1), newGameState];
-        setHistory(newHistory);
-        setCurrentStep(currentStep + 1);
+        // Update game state
         setGameState(newGameState);
+        setHistory([...history.slice(0, currentStep + 1), newGameState]);
+        setCurrentStep(currentStep + 1);
       }
     }
   }, [gameState, history, currentStep, calculateAllSightLines]);
