@@ -18,6 +18,7 @@ export const useGameState = () => {
     showVictory, 
     loadLevel: loadLevelData, 
     loadCustomLevel: loadCustomLevelData,
+    getLevels,
     setLevelCompleted,
     setVictoryVisible,
     setAllLevelsComplete,
@@ -25,18 +26,12 @@ export const useGameState = () => {
   } = useLevelManager();
   const { movePlayer: processMove, undoMove: processUndo } = useGameMoves(calculateAllSightLines);
 
-  // Initialize game with the first level
-  useEffect(() => {
-    // Try to load the custom level first
-    checkForCustomLevel();
-    
-    // Load the first level
-    loadLevel(1);
-  }, []);
 
   // Load a level
   const loadLevel = useCallback((levelNumber: number) => {
+    console.log('useGameState: loadLevel called with levelNumber:', levelNumber);
     const newGameState = loadLevelData(levelNumber);
+    console.log("useGameState: newGameState", newGameState);
     if (newGameState) {
       setGameState(newGameState);
     }
@@ -83,6 +78,7 @@ export const useGameState = () => {
     }
     
     const nextLevelNumber = gameState.level + 1;
+    closeVictory();
     loadLevel(nextLevelNumber);
   }, [gameState, loadLevel]);
 
@@ -116,13 +112,16 @@ export const useGameState = () => {
   // Reset game completely
   const resetGame = useCallback(() => {
     console.log("Resetting game");
-    loadLevel(1);
+    setGameState(null)
     resetTotalSteps();
     setAllLevelsComplete(false);
     setVictoryVisible(false);
-  }, [loadLevel, resetTotalSteps, setAllLevelsComplete, setVictoryVisible]);
+    setLevelCompleted(false);
+  }, [resetTotalSteps, setAllLevelsComplete, setVictoryVisible]);
 
   // Close victory popup
+
+  
   const closeVictory = useCallback(() => {
     setVictoryVisible(false);
   }, [setVictoryVisible]);
@@ -139,6 +138,7 @@ export const useGameState = () => {
     totalSteps,
     loadCustomLevel,
     bestScores,
+    getLevels,
     showVictory,
     closeVictory,
     loadLevel

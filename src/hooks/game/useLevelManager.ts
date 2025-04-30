@@ -1,6 +1,7 @@
 
-import { useState, useCallback } from 'react';
-import levels, { LevelData } from '../../utils/levelData';
+import { useState, useCallback, useEffect } from 'react';
+import levels from '../../levels/levels';
+import { LevelData } from '../../utils/levelData';
 import { getCustomLevelFromCode } from '../../utils/levelHelper';
 import { useBoard } from './useBoard';
 import { GameState } from './types';
@@ -10,85 +11,87 @@ export const useLevelManager = () => {
   const [levelComplete, setLevelComplete] = useState(false);
   const [allLevelsComplete, setAllLevelsComplete] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
+  const levelsData = levels;
+  
   const { initializeBoard, calculateAllSightLines } = useBoard();
-
+  
+  // Get all levels
+  const getLevels = useCallback((): LevelData[] => {
+    return levelsData;
+  }, [levelsData]);
+  
   // Load level
   const loadLevel = useCallback(
-    (levelNumber: number): GameState | null => {
-      const levelData = levels.find((level) => level.id === levelNumber);
+    (levelNumber: number) => {
+
+      console.log('useLevelManager: loadLevel called with levelNumber:', levelNumber);
+      const levelData = levelsData[levelNumber - 1];
+      console.log("useLevelManager: levelData", levelData);
       
       if (!levelData) {
         console.error(`Level ${levelNumber} not found`);
         setAllLevelsComplete(true);
         return null;
       }
-      
+
       try {
-        const board = initializeBoard(levelData);
-        const sightLines = calculateAllSightLines(board);
-        
+          const board = initializeBoard(levelData);
+          const sightLines = calculateAllSightLines(board);
+          
         const gameState: GameState = {
           level: levelNumber,
           board,
-          playerPosition: [...levelData.playerStart] as [number, number],
+          playerPosition: [...levelData.playerStart],
           steps: 0,
           sightLines,
           gameOver: false,
           victory: false,
-          message: '',
-          ninjaInstinct: 3,
+          message: "",
+          ninjaInstinct: 1,
           levelName: levelData.name || `Level ${levelNumber}`,
-          history: [
+          history:[
             {
               board: JSON.parse(JSON.stringify(board)),
-              playerPosition: [...levelData.playerStart] as [number, number],
-              steps: 0,
-            },
+              playerPosition: [...levelData.playerStart],
+              steps: 0
+            }
           ],
         };
-        
-        setLevelComplete(false);
-        setShowVictory(false);
-        console.log(`Level ${levelNumber} loaded successfully`);
         return gameState;
       } catch (error) {
         console.error(`Error loading level ${levelNumber}:`, error);
         return null;
       }
     },
-    [initializeBoard, calculateAllSightLines]
-  );
-
+    [initializeBoard, calculateAllSightLines, levelsData]
+    );
+  
   // Load a custom level
   const loadCustomLevel = useCallback(
-    (levelData: LevelData): GameState => {
+    (levelData: LevelData) => {
       const board = initializeBoard(levelData);
       const sightLines = calculateAllSightLines(board);
-      
+
       const gameState: GameState = {
         level: levelData.id,
         board,
-        playerPosition: levelData.playerStart,
+        playerPosition: [...levelData.playerStart],
         steps: 0,
         sightLines,
         gameOver: false,
         victory: false,
         message: '',
-        ninjaInstinct: 3,
-        levelName: levelData.name || `Custom Level`,
+        ninjaInstinct: 1,
+        levelName: levelData.name || "Custom Level",
         isCustomLevel: true,
         history: [
           {
             board: JSON.parse(JSON.stringify(board)),
-            playerPosition: [...levelData.playerStart] as [number, number],
-            steps: 0,
-          },
-        ],
+            playerPosition: [...levelData.playerStart],
+            steps: 0
+          }
+        ]
       };
-      
-      setLevelComplete(false);
-      setShowVictory(false);
-      setAllLevelsComplete(false);
       return gameState;
     },
     [initializeBoard, calculateAllSightLines]
@@ -107,14 +110,12 @@ export const useLevelManager = () => {
   // Check if custom level from code exists
   const checkForCustomLevel = useCallback(() => {
     try {
-      const customLevelCode = "eyJpZCI6MTc0NTk1MTkxMjI0NywibmFtZSI6IkN1c3RvbSBMZXZlbCIsInNpemUiOls1LDVdLCJwbGF5ZXJTdGFydCI6WzAsMF0sImtpbmdzIjpbWzQsNF1dLCJlbmVtaWVzIjpbeyJ0eXBlIjoiYmlzaG9wIiwicG9zaXRpb24iOlswLDRdfSx7InR5cGUiOiJiaXNob3AiLCJwb3NpdGlvbiI6WzQsMF19XSwiYm94ZXMiOltbMiwxXSxbMSwyXV19";
       console.log("Attempting to load custom level");
-      const customLevel = getCustomLevelFromCode(customLevelCode);
+      const customLevel = getCustomLevelFromCode("");
       
       if (customLevel) {
         console.log("Custom level loaded successfully:", customLevel);
         // Replace the first level with the custom level
-        levels[0] = customLevel;
       } else {
         console.error("Failed to load custom level from code");
       }
@@ -123,6 +124,8 @@ export const useLevelManager = () => {
     }
   }, []);
 
+  
+  
   return {
     levelComplete,
     allLevelsComplete,
@@ -131,7 +134,8 @@ export const useLevelManager = () => {
     loadCustomLevel,
     setLevelCompleted,
     setVictoryVisible,
-    setAllLevelsComplete,
+      setAllLevelsComplete,
+      getLevels,
     checkForCustomLevel
-  };
+  }
 };

@@ -11,7 +11,7 @@ export const getGameBoardPreview = (level: LevelData) => {
   let board = Array(rows).fill(0).map(() => Array(cols).fill(''));
   
   // Fill player position
-  board[playerStart[0]][playerStart[1]] = '🥷';
+  board[playerStart[1]][playerStart[0]] = '🥷';
   
   // Fill kings positions
   kings.forEach(([row, col]) => {

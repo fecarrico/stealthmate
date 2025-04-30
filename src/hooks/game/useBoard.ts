@@ -3,43 +3,41 @@ import { useState, useCallback } from 'react';
 import { LevelData, CellType, GameCell } from '../../utils/levelData';
 
 // Hooks for board operations
+
 export const useBoard = () => {
+  const BOARD_SIZE = 5;
   // Initialize the board from level data
   const initializeBoard = useCallback((levelData: LevelData): GameCell[][] => {
-    const [rows, cols] = levelData.size;
-    const board: GameCell[][] = Array(rows)
-      .fill(null)
-      .map((_, row) =>
-        Array(cols)
-          .fill(null)
-          .map((_, col) => ({
-            type: CellType.EMPTY,
-            position: [row, col],
-          }))
-      );
+    console.log('useBoard: initializeBoard called with levelData:', levelData);
+      const board: GameCell[][] = Array.from(
+      { length: BOARD_SIZE },
+      (_, y) =>
+        Array.from({ length: BOARD_SIZE }, (_, x) => ({
+          type: CellType.EMPTY,
+          position: [x, y],
+       }))
+    );
 
-    // Place player
-    board[levelData.playerStart[0]][levelData.playerStart[1]].type = CellType.PLAYER;
-
-    // Place kings
-    levelData.kings.forEach(([row, col]) => {
-      board[row][col].type = CellType.KING;
+      // Place kings
+    levelData.kings?.forEach((item) => {
+      board[item[1]][item[0]].type = CellType.KING;
     });
 
     // Place enemies
-    levelData.enemies.forEach((enemy) => {
-      const [row, col] = enemy.position;
-      board[row][col].type = enemy.type;
-    });
+   levelData.enemies.forEach((item) => {
+     board[item.position[0]][item.position[1]].type = item.type;
+   });
 
     // Place boxes
-    levelData.boxes.forEach(([row, col]) => {
-      board[row][col].type = CellType.BOX;
-    });
+   levelData.boxes.forEach((item) => {
+     board[item[0]][item[1]].type = CellType.BOX;
+   });
 
+    board[levelData.playerStart[0]][levelData.playerStart[1]].type = CellType.PLAYER;
     return board;
   }, []);
 
+ 
   // Calculate all enemy sight lines
   const calculateAllSightLines = useCallback(
     (board: GameCell[][]): [number, number][] => {
@@ -161,3 +159,4 @@ export const useBoard = () => {
     isValidPosition,
   };
 };
+

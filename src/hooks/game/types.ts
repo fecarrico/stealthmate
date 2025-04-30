@@ -17,6 +17,8 @@ export interface GameState {
   isCustomLevel?: boolean;
 }
 
+export enum EnemyType {BISHOP = 'bishop', ROOK='rook', QUEEN='queen', KNIGHT='knight', PAWN='pawn'}
+
 export interface GameCell {
   type: CellType;
   position: [number, number];

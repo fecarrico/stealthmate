@@ -17,10 +17,7 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
 import { Shield, Box, BoxIcon } from 'lucide-react';
 
-const LevelEditor: React.FC<{
-  onTestLevel: (level: LevelData) => void;
-  onSave: (level: LevelData) => void;
-}> = ({ onTestLevel, onSave }) => {
+const LevelEditor: React.FC = () => {
   const [boardSize, setBoardSize] = useState<[number, number]>([5, 5]);
   const [selectedCellType, setSelectedCellType] = useState<CellType>(CellType.EMPTY);
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
@@ -134,16 +131,6 @@ const LevelEditor: React.FC<{
       boxes: boxes,
     };
     
-    return levelData;
-  };
-  
-  const handleTestLevel = () => {
-    const levelData = generateLevelData();
-    if (levelData) {
-      onTestLevel(levelData);
-    }
-  };
-  
   const handleSaveLevel = () => {
     const levelData = generateLevelData();
     if (levelData) {
@@ -168,9 +155,6 @@ const LevelEditor: React.FC<{
           <CardTitle className="flex justify-between items-center">
             <span>Level Editor</span>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleTestLevel} className="border-zinc-700 hover:bg-zinc-800">
-                Test Level
-              </Button>
               <Button onClick={handleSaveLevel}>Save Level</Button>
             </div>
           </CardTitle>

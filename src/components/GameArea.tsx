@@ -44,7 +44,7 @@ const GameArea: React.FC<GameAreaProps> = ({
           </div>
           
           {/* Game Board */}
-          <div className="aspect-square">
+          <div className="aspect-square ">
             <GameBoard 
               board={gameState.board} 
               sightLines={gameState.sightLines}
@@ -62,23 +62,7 @@ const GameArea: React.FC<GameAreaProps> = ({
             isSuccess={gameState.victory} 
           />
         </div>
-      )}
-      
-      <div className="mt-4">
-        <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800 flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <Input 
-              placeholder="Enter level code..." 
-              value={levelCode}
-              onChange={(e) => setLevelCode(e.target.value)}
-              className="flex-grow bg-zinc-800 border-zinc-700"
-            />
-            <Button onClick={handleLoadCode} className="game-button bg-amber-600 hover:bg-amber-700">
-              Load Level
-            </Button>
-          </div>
-        </div>
-      </div>
+      )} 
     </div>
   );
 };

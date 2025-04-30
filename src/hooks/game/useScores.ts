@@ -19,11 +19,11 @@ export const useScores = () => {
   }, []);
 
   // Save best score to localStorage
-  const saveBestScore = useCallback((levelId: number, steps: number) => {
-    const currentBest = bestScores[levelId];
+  const saveBestScore = useCallback((levelNumber: number, steps: number) => {
+    const currentBest = bestScores[levelNumber];
     
     if (!currentBest || steps < currentBest) {
-      const newBestScores = { ...bestScores, [levelId]: steps };
+      const newBestScores = { ...bestScores, [levelNumber]: steps };
       setBestScores(newBestScores);
       
       try {
@@ -32,6 +32,11 @@ export const useScores = () => {
         console.error("Error saving best score:", error);
       }
     }
+  }, [bestScores]);
+
+  // Get the best score for a level
+  const getBestScoreForLevel = useCallback((levelNumber: number): number | undefined => {
+    return bestScores[levelNumber];
   }, [bestScores]);
 
   // Add steps to total steps
@@ -48,6 +53,7 @@ export const useScores = () => {
     bestScores,
     totalSteps,
     saveBestScore,
+    getBestScoreForLevel,
     addToTotalSteps,
     resetTotalSteps,
   };

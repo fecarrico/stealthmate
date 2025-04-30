@@ -1,27 +1,24 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import SplashScreen from "./components/SplashScreen";
+import LevelSelectPage from "./pages/LevelSelectPage";
+import GamePage from "./pages/GamePage";
+import LevelEditorPage from "./pages/LevelEditorPage";
 
-const queryClient = new QueryClient();
+import "./styles/index.css";
+import "./styles/victoryPopup.css";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+       <Routes>
+         <Route path="/" element={<SplashScreen />} />
+        <Route path="/levels" element={<LevelSelectPage />} />
+        <Route path="/game" element={<GamePage />} />
+        <Route path="/editor" element={<LevelEditorPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
 
 export default App;
