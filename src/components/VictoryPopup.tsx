@@ -3,17 +3,19 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface VictoryPopupProps {
+  level: number;
   steps: number;
-  onNextLevel: () => void;
-  onReplayLevel: () => void;
-  levelName: string;
+  onNextLevel?: () => void;
+  onReplayLevel?: () => void;
+  levelName?: string;
 }
 
 const VictoryPopup: React.FC<VictoryPopupProps> = ({ 
   steps,
+  level,
   onNextLevel,
   onReplayLevel,
-  levelName
+  levelName = `Level ${level}`
 }) => {
   return (
     <div className="victory-popup">
@@ -27,19 +29,23 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
         </div>
         
         <div className="flex gap-4 justify-center">
-          <Button 
-            onClick={onReplayLevel}
-            variant="outline"
-            className="text-lg px-6 py-2 bg-zinc-900 text-zinc-200 border-zinc-700 hover:bg-zinc-800"
-          >
-            Replay Level
-          </Button>
-          <Button 
-            onClick={onNextLevel}
-            className="bg-amber-600 hover:bg-amber-700 text-zinc-950 text-lg px-6 py-2 font-medium"
-          >
-            Next Level
-          </Button>
+          {onReplayLevel && (
+            <Button 
+              onClick={onReplayLevel}
+              variant="outline"
+              className="text-lg px-6 py-2 bg-zinc-900 text-zinc-200 border-zinc-700 hover:bg-zinc-800"
+            >
+              Replay Level
+            </Button>
+          )}
+          {onNextLevel && (
+            <Button 
+              onClick={onNextLevel}
+              className="bg-amber-600 hover:bg-amber-700 text-zinc-950 text-lg px-6 py-2 font-medium"
+            >
+              Next Level
+            </Button>
+          )}
         </div>
       </div>
     </div>
