@@ -10,12 +10,13 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CellType, GameCell, LevelData } from '@/utils/levelData';
+import { CellType, GameCell, LevelData, saveCustomLevel } from '@/utils/levelData';
 import GameBoard from './GameBoard';
 import { getCellAt } from '@/utils/gameLogic';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
-import { Shield, Box } from 'lucide-react';
+import { Shield, Box, Play, ArrowLeft, Save } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LevelEditor: React.FC = () => {
   const [boardSize, setBoardSize] = useState<[number, number]>([5, 5]);
@@ -26,6 +27,7 @@ const LevelEditor: React.FC = () => {
   const [enemies, setEnemies] = useState<{ type: CellType; position: [number, number] }[]>([]);
   const [boxes, setBoxes] = useState<[number, number][]>([]);
   const [levelName, setLevelName] = useState<string>("Custom Level");
+  const navigate = useNavigate();
   
   // Initialize empty board
   const [board, setBoard] = useState<GameCell[][]>([]);
@@ -122,12 +124,15 @@ const LevelEditor: React.FC = () => {
     }
     
     const levelData: LevelData = {
-      id: Date.now(), // Use timestamp as unique ID
+      id: Date.now(), 
+      level: 1000 + Date.now() % 1000, // Use a high number for custom levels
       name: levelName,
       playerStart: playerStart,
       kings: kings,
       enemies: enemies,
       boxes: boxes,
+      isCustom: true,
+      board: Array(boardSize[0]).fill(0).map(() => Array(boardSize[1]).fill(0)),
     };
     
     return levelData;
@@ -136,7 +141,17 @@ const LevelEditor: React.FC = () => {
   const handleSaveLevel = () => {
     const levelData = generateLevelData();
     if (levelData) {
+      saveCustomLevel(levelData);
       toast.success("Level saved successfully");
+    }
+  };
+  
+  const handleTestLevel = () => {
+    const levelData = generateLevelData();
+    if (levelData) {
+      // Store the level in localStorage temporarily
+      localStorage.setItem('testing_level', JSON.stringify(levelData));
+      navigate('/game?mode=test');
     }
   };
   
@@ -154,9 +169,27 @@ const LevelEditor: React.FC = () => {
       <Card className="md:col-span-2 bg-zinc-900 border-zinc-800 text-zinc-100">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
-            <span>Level Editor</span>
+            <div className="text-amber-500 flex items-center gap-2">
+              <Shield className="h-6 w-6" />
+              <span>StealthMate Level Editor</span>
+            </div>
             <div className="flex gap-2">
-              <Button onClick={handleSaveLevel}>Save Level</Button>
+              <Button 
+                onClick={() => navigate('/')} 
+                variant="outline" 
+                className="border-zinc-700 text-zinc-300"
+              >
+                <ArrowLeft className="mr-1 h-4 w-4" />
+                Back
+              </Button>
+              <Button onClick={handleSaveLevel} className="bg-amber-600 hover:bg-amber-700 text-zinc-950 font-medium">
+                <Save className="mr-1 h-4 w-4" />
+                Save Level
+              </Button>
+              <Button onClick={handleTestLevel} className="bg-green-600 hover:bg-green-700 text-zinc-950 font-medium">
+                <Play className="mr-1 h-4 w-4" />
+                Test Level
+              </Button>
             </div>
           </CardTitle>
         </CardHeader>
@@ -213,7 +246,7 @@ const LevelEditor: React.FC = () => {
                   key={type}
                   variant={selectedCellType === type ? "default" : "outline"}
                   onClick={() => setSelectedCellType(type)}
-                  className={`h-16 ${selectedCellType !== type ? 'border-zinc-700 hover:bg-zinc-800' : ''}`}
+                  className={`h-16 ${selectedCellType !== type ? 'border-zinc-700 hover:bg-zinc-800' : ''} text-zinc-950`}
                 >
                   <div className="flex flex-col items-center">
                     {type === CellType.PLAYER && (
@@ -245,13 +278,16 @@ const LevelEditor: React.FC = () => {
           <CardContent>
             <Button 
               onClick={generateLevelCode} 
-              className="w-full"
+              className="w-full text-zinc-950"
               variant="outline"
             >
               Generate & Copy Code
             </Button>
           </CardContent>
         </Card>
+      </div>
+      <div className="col-span-1 md:col-span-3 text-xs text-right text-zinc-500">
+        Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
       </div>
     </div>
   );

@@ -1,21 +1,27 @@
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import LevelSelector from '@/components/LevelSelector';
-import { LevelData } from '@/utils/levelData';
+import { getCustomLevels, LevelData } from '@/utils/levelData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { loadLevelFromCode } from '@/utils/levelData';
 import { useGameState } from '@/hooks/useGameState';
-import { Shield, Code, ArrowRight } from 'lucide-react';
+import { Shield, Code, ArrowRight, ChevronLeft } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const LevelSelectPage: React.FC = () => {  
   const [levelCode, setLevelCode] = useState<string>('');
+  const [customLevels, setCustomLevels] = useState<LevelData[]>([]);
   const navigate = useNavigate();
 
   const {loadCustomLevel, bestScores, getLevels, loadLevel } = useGameState();
+
+  useEffect(() => {
+    // Load custom levels from localStorage when component mounts
+    setCustomLevels(getCustomLevels());
+  }, []);
   
   const handleLoadCode = () => {
     if (levelCode.trim()) {
@@ -40,6 +46,11 @@ const LevelSelectPage: React.FC = () => {
     loadLevel(levelId);
     navigate(`/game?levelId=${levelId}`);
   };
+
+  const handleCustomLevelSelect = (level: LevelData) => {
+    loadCustomLevel(level);
+    navigate('/game');
+  };
   
   const levels = getLevels();
   
@@ -51,7 +62,75 @@ const LevelSelectPage: React.FC = () => {
       </h1>
       
       <div className="w-full max-w-6xl">
-        <LevelSelector levels={levels} bestScores={bestScores} handleSelectLevel={handleLevelSelect} />
+        <div className="flex items-center justify-between mb-6">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 text-zinc-200 border-zinc-700" 
+            onClick={() => navigate('/')}
+          >
+            <ChevronLeft size={16} />
+            Back to Main Menu
+          </Button>
+          
+          <h2 className="text-2xl font-bold text-amber-500 flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Select a Level
+          </h2>
+        </div>
+
+        <h3 className="text-xl font-semibold mb-4 text-zinc-200">Official Levels</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+          {levels.map((level) => (
+            <Card 
+              key={level.level} 
+              className="bg-zinc-900 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer overflow-hidden"
+              onClick={() => handleLevelSelect(level.level)}
+            >
+              <div className="h-32 bg-zinc-800 relative">
+                {/* Level preview would go here */}
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent flex items-end p-3">
+                  <div className="bg-amber-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
+                    Level {level.level}
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <h3 className="text-lg font-bold text-zinc-200">{level.name}</h3>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs text-zinc-400">Best Score:</span>
+                  <span className="text-amber-400 font-bold">{bestScores[level.level] ?? "N/A"}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {customLevels.length > 0 && (
+          <>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-300">Your Custom Levels</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+              {customLevels.map((level) => (
+                <Card 
+                  key={level.id} 
+                  className="bg-zinc-900 border-zinc-700 hover:border-amber-500 transition-all cursor-pointer overflow-hidden opacity-90 hover:opacity-100"
+                  onClick={() => handleCustomLevelSelect(level)}
+                >
+                  <div className="h-24 bg-zinc-800 relative">
+                    {/* Custom level preview would go here */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent flex items-end p-3">
+                      <div className="bg-green-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
+                        Custom
+                      </div>
+                    </div>
+                  </div>
+                  <CardContent className="p-3">
+                    <h3 className="text-md font-bold text-zinc-300">{level.name}</h3>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
         
         <Card className="mt-8 bg-zinc-900 border-zinc-800">
           <CardHeader>
@@ -70,7 +149,7 @@ const LevelSelectPage: React.FC = () => {
               />
               <Button 
                 onClick={handleLoadCode} 
-                className="bg-amber-600 hover:bg-amber-700 flex items-center gap-2"
+                className="bg-amber-600 hover:bg-amber-700 text-zinc-950 flex items-center gap-2 font-medium"
               >
                 Load Level
                 <ArrowRight size={16} />
@@ -78,6 +157,10 @@ const LevelSelectPage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+      
+      <div className="w-full max-w-6xl mt-8 text-xs text-right text-zinc-500">
+        Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
       </div>
     </div>
   );

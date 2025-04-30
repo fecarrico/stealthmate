@@ -4,19 +4,30 @@ import { LevelData, CellType } from './levelData';
 
 // Generate a simple preview of the game board for level thumbnails
 export const getGameBoardPreview = (level: LevelData) => {
-  const { size, playerStart, kings, enemies, boxes } = level;
-  const [rows, cols] = size;
+  const { playerStart, kings, enemies, boxes } = level;
+  // Get board size based on the positions
+  const allPositions = [
+    playerStart,
+    ...(kings || []),
+    ...(enemies.map(e => e.position)),
+    ...(boxes || [])
+  ];
+  
+  const maxRow = Math.max(...allPositions.map(p => p[0]), 4) + 1;
+  const maxCol = Math.max(...allPositions.map(p => p[1]), 4) + 1;
   
   // Create an empty board representation
-  let board = Array(rows).fill(0).map(() => Array(cols).fill(''));
+  let board = Array(maxRow).fill(0).map(() => Array(maxCol).fill(''));
   
   // Fill player position
-  board[playerStart[1]][playerStart[0]] = '🥷';
+  board[playerStart[0]][playerStart[1]] = '🥷';
   
   // Fill kings positions
-  kings.forEach(([row, col]) => {
-    board[row][col] = '♔';
-  });
+  if (kings) {
+    kings.forEach(([row, col]) => {
+      board[row][col] = '♔';
+    });
+  }
   
   // Fill enemy positions
   enemies.forEach(enemy => {
@@ -43,8 +54,8 @@ export const getGameBoardPreview = (level: LevelData) => {
     <div 
       className="grid w-full h-full"
       style={{ 
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-        gridTemplateColumns: `repeat(${cols}, 1fr)`
+        gridTemplateRows: `repeat(${maxRow}, 1fr)`,
+        gridTemplateColumns: `repeat(${maxCol}, 1fr)`
       }}
     >
       {board.map((row, rowIdx) => 

@@ -41,7 +41,7 @@ export const useLevelManager = () => {
         const gameState: GameState = {
           level: levelNumber,
           board,
-          playerPosition: [...levelData.playerStart],
+          playerPosition: [...levelData.playerStart] as [number, number],
           steps: 0,
           sightLines,
           gameOver: false,
@@ -52,7 +52,7 @@ export const useLevelManager = () => {
           history:[
             {
               board: JSON.parse(JSON.stringify(board)),
-              playerPosition: [...levelData.playerStart],
+              playerPosition: [...levelData.playerStart] as [number, number],
               steps: 0
             }
           ],
@@ -75,7 +75,7 @@ export const useLevelManager = () => {
       const gameState: GameState = {
         level: levelData.id,
         board,
-        playerPosition: [...levelData.playerStart],
+        playerPosition: [...levelData.playerStart] as [number, number],
         steps: 0,
         sightLines,
         gameOver: false,
@@ -87,7 +87,7 @@ export const useLevelManager = () => {
         history: [
           {
             board: JSON.parse(JSON.stringify(board)),
-            playerPosition: [...levelData.playerStart],
+            playerPosition: [...levelData.playerStart] as [number, number],
             steps: 0
           }
         ]
@@ -124,8 +124,6 @@ export const useLevelManager = () => {
     }
   }, []);
 
-  
-  
   return {
     levelComplete,
     allLevelsComplete,
@@ -134,8 +132,8 @@ export const useLevelManager = () => {
     loadCustomLevel,
     setLevelCompleted,
     setVictoryVisible,
-      setAllLevelsComplete,
-      getLevels,
+    setAllLevelsComplete,
+    getLevels,
     checkForCustomLevel
   }
 };

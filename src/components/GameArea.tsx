@@ -25,7 +25,7 @@ const GameArea: React.FC<GameAreaProps> = ({
           {/* Ninja Instinct Button */}
           <div className="mb-4 flex justify-center">
             <Button
-              className="bg-purple-700 hover:bg-purple-800 text-white flex items-center gap-2 py-2 px-4"
+              className="bg-purple-700 hover:bg-purple-800 text-zinc-100 flex items-center gap-2 py-2 px-4"
               onMouseDown={() => setShowSightLines(gameState.ninjaInstinct > 0)}
               onMouseUp={() => setShowSightLines(false)}
               onMouseLeave={() => setShowSightLines(false)}

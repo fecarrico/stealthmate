@@ -1,5 +1,4 @@
 
-import { EnemyData } from '../hooks/game/types';
 export enum CellType {
   EMPTY = 'empty',
   PLAYER = 'player',
@@ -15,15 +14,21 @@ export interface GameCell {
   position: [number, number];
 }
 
+export interface EnemyData {
+  type: CellType;
+  position: [number, number];
+}
+
 export interface LevelData {
-    level: number;    
     id: number;
-    board: number[][];
-    playerStart: number[];
-    kings?: number[][];
+    level: number;
     name: string;
+    playerStart: [number, number];
+    kings?: [number, number][];
     enemies: EnemyData[];
-    boxes: number[][];
+    boxes: [number, number][];
+    board?: number[][];
+    isCustom?: boolean;
 }
 
 // Function to load custom level from level code

@@ -36,7 +36,7 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
           </Button>
           <Button 
             onClick={onNextLevel}
-            className="bg-amber-600 hover:bg-amber-700 text-lg px-6 py-2"
+            className="bg-amber-600 hover:bg-amber-700 text-zinc-950 text-lg px-6 py-2 font-medium"
           >
             Next Level
           </Button>
