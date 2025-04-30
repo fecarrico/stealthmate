@@ -31,7 +31,7 @@ const GamePage: React.FC = () => {
   const { gameState, movePlayer, resetLevel, undoMove, redoMove, canUndo, canRedo, getHint, ninjaInstinctCost, ninjaInstinctAvailable, setNinjaInstinctAvailable, isGameOver, isVictory } = useGameLogic();
   const { loadLevel, loadCustomLevel } = useLevelManager();
   
-  // Changed the type to GameState | null to match the expected return type from loadLevel and loadCustomLevel
+  // Changed the type to LevelData | null to match the expected return type
   const [levelData, setLevelData] = useState<LevelData | null>(null);
   
   // Load level when levelId changes
@@ -98,7 +98,7 @@ const GamePage: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleMove]);
+  }, []);
   
   const handleReset = () => {
     resetLevel();
@@ -152,11 +152,11 @@ const GamePage: React.FC = () => {
         </div>
       </div>
       
-      {isVictory && (
+      {isVictory && gameState && (
         <VictoryPopup 
-          level={gameState?.level || 1}
-          steps={gameState?.steps || 0}
-          levelName={gameState?.levelName}
+          level={gameState.level || 1}
+          steps={gameState.steps || 0}
+          levelName={gameState.levelName}
         />
       )}
       

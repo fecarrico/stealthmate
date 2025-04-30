@@ -1,186 +1,179 @@
-
-import React, { useState, useEffect } from 'react';
-import { CellType, GameCell, LevelData, saveCustomLevel } from '@/utils/levelData';
-import { toast } from '@/components/ui/sonner';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
 import EditorSidebar from './levelEditor/EditorSidebar';
-import AuthorFooter from './levelEditor/AuthorFooter';
+import { LevelData, CellType, GameCell } from '@/utils/levelData';
+import { toast } from '@/components/ui/sonner';
+import AuthorFooter from './AuthorFooter';
 
 const LevelEditor: React.FC = () => {
-  const [boardSize, setBoardSize] = useState<[number, number]>([5, 5]);
-  const [selectedCellType, setSelectedCellType] = useState<CellType>(CellType.EMPTY);
-  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
-  const [playerStart, setPlayerStart] = useState<[number, number]>([0, 0]);
-  const [kings, setKings] = useState<[number, number][]>([]);
-  const [enemies, setEnemies] = useState<{ type: CellType; position: [number, number] }[]>([]);
-  const [boxes, setBoxes] = useState<[number, number][]>([]);
-  const [levelName, setLevelName] = useState<string>("Custom Level");
-  const navigate = useNavigate();
-  
-  // Initialize empty board
+  const [boardSize, setBoardSize] = useState(5);
   const [board, setBoard] = useState<GameCell[][]>([]);
-  
+  const [sightLines, setSightLines] = useState<any[]>([]);
+  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
+  const [activeTool, setActiveTool] = useState<CellType>(CellType.EMPTY);
+  const [levelName, setLevelName] = useState<string>("Custom Level");
+  const [playerStart, setPlayerStart] = useState<[number, number]>([-1, -1]);
+  const [kings, setKings] = useState<[number, number][]>([]);
+  const [enemies, setEnemies] = useState<any[]>([]);
+  const [boxes, setBoxes] = useState<[number, number][]>([]);
+  const navigate = useNavigate();
+
   useEffect(() => {
     initializeBoard();
   }, [boardSize]);
-  
-  const initializeBoard = () => {
-    const [rows, cols] = boardSize;
-    const newBoard: GameCell[][] = Array(rows)
-      .fill(null)
-      .map((_, row) =>
-        Array(cols)
-          .fill(null)
-          .map((_, col) => ({
-            type: CellType.EMPTY,
-            position: [row, col],
-          }))
-      );
-    
+
+  const initializeBoard = useCallback(() => {
+    const newBoard: GameCell[][] = Array.from(
+      { length: boardSize },
+      (_, y) =>
+        Array.from({ length: boardSize }, (_, x) => ({
+          type: CellType.EMPTY,
+          position: [x, y],
+        }))
+    );
     setBoard(newBoard);
-    
-    // Reset positions
-    setPlayerStart([0, 0]);
+    setSightLines([]);
+    setSelectedCell(null);
+    setPlayerStart([-1, -1]);
     setKings([]);
     setEnemies([]);
     setBoxes([]);
-    
-    // Set player at start
-    newBoard[0][0].type = CellType.PLAYER;
-  };
-  
+  }, [boardSize]);
+
   const handleCellClick = (row: number, col: number) => {
-    setSelectedCell([row, col]);
-    
-    if (selectedCellType !== null) {
-      const newBoard = [...board];
-      const oldType = newBoard[row][col].type;
-      
-      // Remove from respective arrays if needed
-      if (oldType === CellType.PLAYER) {
-        // Skip if trying to remove the player with no new player placed
-        if (selectedCellType !== CellType.PLAYER) {
-          setPlayerStart([-1, -1]); // Invalid position to indicate no player
-        }
-      } else if (oldType === CellType.KING) {
-        setKings(kings.filter(([r, c]) => r !== row || c !== col));
-      } else if (oldType === CellType.ROOK || oldType === CellType.BISHOP || oldType === CellType.QUEEN) {
-        setEnemies(enemies.filter(e => e.position[0] !== row || e.position[1] !== col));
-      } else if (oldType === CellType.BOX) {
-        setBoxes(boxes.filter(([r, c]) => r !== row || c !== col));
-      }
-      
-      // Add to respective arrays
-      if (selectedCellType === CellType.PLAYER) {
-        // Remove old player position if exists
-        const newBoardWithoutPlayer = newBoard.map(row => 
-          row.map(cell => {
-            if (cell.type === CellType.PLAYER) {
-              return { ...cell, type: CellType.EMPTY };
+    const newBoard = board.map((rowArray, rowIndex) =>
+      rowArray.map((cell, colIndex) => {
+        if (rowIndex === row && colIndex === col) {
+          let newType = activeTool;
+
+          if (activeTool === CellType.PLAYER) {
+            // Clear previous player position
+            if (playerStart[0] !== -1 && playerStart[1] !== -1) {
+              board[playerStart[0]][playerStart[1]].type = CellType.EMPTY;
             }
-            return cell;
-          })
-        );
-        setBoard(newBoardWithoutPlayer);
-        setPlayerStart([row, col]);
-      } else if (selectedCellType === CellType.KING) {
-        setKings([...kings, [row, col]]);
-      } else if (selectedCellType === CellType.ROOK || 
-                 selectedCellType === CellType.BISHOP || 
-                 selectedCellType === CellType.QUEEN) {
-        setEnemies([...enemies, { type: selectedCellType, position: [row, col] }]);
-      } else if (selectedCellType === CellType.BOX) {
-        setBoxes([...boxes, [row, col]]);
-      }
-      
-      // Update board
-      newBoard[row][col].type = selectedCellType;
-      setBoard(newBoard);
-    }
+            setPlayerStart([row, col]);
+            newType = CellType.PLAYER;
+          }
+
+          if (activeTool === CellType.KING) {
+            const isKingAlready = kings.some(king => king[0] === row && king[1] === col);
+            if (!isKingAlready) {
+              setKings([...kings, [row, col]]);
+            }
+            newType = CellType.KING;
+          } else {
+            // Remove king if the cell is already a king and we're changing it
+            setKings(kings.filter(king => !(king[0] === row && king[1] === col)));
+          }
+
+          if (activeTool === CellType.EMPTY && cell.type === CellType.PLAYER) {
+            setPlayerStart([-1, -1]);
+          }
+
+          return { ...cell, type: newType };
+        }
+        return cell;
+      })
+    );
+    setBoard(newBoard);
+    setSelectedCell([row, col]);
+  };
+
+  // Add validation for level requirements
+  const hasPlayer = (): boolean => {
+    return playerStart[0] >= 0 && playerStart[1] >= 0;
   };
   
-  const handleBoardSizeChange = (newSize: number[]) => {
-    // Convert value from slider (2-15) to board size
-    const size = newSize[0];
-    setBoardSize([size, size]);
+  const hasKing = (): boolean => {
+    return kings.length > 0;
   };
   
-  const validateLevel = (): boolean => {
-    // Check if player exists
-    if (playerStart[0] === -1 || playerStart[1] === -1) {
-      toast.error("Level must have a player");
-      return false;
-    }
-    
-    // Check if at least one king exists
-    if (kings.length === 0) {
-      toast.error("Level must have at least one king");
-      return false;
-    }
-    
-    return true;
-  };
-  
-  const generateLevelData = (): LevelData | null => {
-    if (!validateLevel()) {
-      return null;
-    }
-    
-    const levelData: LevelData = {
-      id: Date.now(), 
-      level: 1000 + Date.now() % 1000, // Use a high number for custom levels
-      name: levelName,
-      playerStart: playerStart,
-      kings: kings,
-      enemies: enemies,
-      boxes: boxes,
-      isCustom: true,
-      board: Array(boardSize[0]).fill(0).map(() => Array(boardSize[1]).fill(0)),
-    };
-    
-    return levelData;
-  };
-  
-  const handleSaveLevel = () => {
-    const levelData = generateLevelData();
-    if (levelData) {
-      saveCustomLevel(levelData);
-      toast.success("Level saved successfully");
-    }
-  };
-  
+  const canSaveLevel = hasPlayer() && hasKing();
+
+  // Test level
   const handleTestLevel = () => {
+    if (!canSaveLevel) {
+      toast.error("Level must have a player and at least one king");
+      return;
+    }
+    
     const levelData = generateLevelData();
     if (levelData) {
-      // Store the level in localStorage temporarily
       localStorage.setItem('testing_level', JSON.stringify(levelData));
       navigate('/game?mode=test');
+    } else {
+      toast.error("Failed to generate level data");
     }
   };
 
+  // Save level
+  const handleSaveLevel = () => {
+    if (!canSaveLevel) {
+      toast.error("Level must have a player and at least one king");
+      return;
+    }
+    
+    const levelData = generateLevelData();
+    if (levelData) {
+      try {
+        const levelCode = btoa(JSON.stringify(levelData));
+        navigator.clipboard.writeText(levelCode);
+        toast.success("Level code copied to clipboard");
+      } catch (error) {
+        console.error("Error generating level code:", error);
+        toast.error("Failed to generate level code");
+      }
+    }
+  };
+
+  // Generate level data
+  const generateLevelData = (): LevelData | null => {
+    if (!hasPlayer() || !hasKing()) {
+      toast.error("Level must have a player and at least one king");
+      return null;
+    }
+    
+    const kingsData = kings.map(king => [king[0], king[1]]);
+    const boxesData = boxes.map(box => [box[0], box[1]]);
+
+    const levelData: LevelData = {
+      name: levelName,
+      level: 0,
+      boardSize: boardSize,
+      playerStart: [playerStart[0], playerStart[1]],
+      kings: kingsData,
+      enemies: enemies,
+      boxes: boxesData,
+    };
+    return levelData;
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <LevelEditorBoard 
-        board={board}
-        sightLines={[]}
-        selectedCell={selectedCell}
-        onCellClick={handleCellClick}
-        handleSaveLevel={handleSaveLevel}
-        handleTestLevel={handleTestLevel}
-      />
-      
-      <EditorSidebar 
-        levelName={levelName}
-        setLevelName={setLevelName}
-        boardSize={boardSize}
-        handleBoardSizeChange={handleBoardSizeChange}
-        selectedCellType={selectedCellType}
-        setSelectedCellType={setSelectedCellType}
-        generateLevelData={generateLevelData}
-      />
-      
-      <AuthorFooter />
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4">
+      <div className="container mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <LevelEditorBoard
+            board={board}
+            sightLines={sightLines}
+            selectedCell={selectedCell}
+            onCellClick={handleCellClick}
+            handleSaveLevel={handleSaveLevel}
+            handleTestLevel={handleTestLevel}
+            canSaveLevel={canSaveLevel}
+          />
+          <EditorSidebar
+            activeTool={activeTool}
+            setActiveTool={setActiveTool}
+            levelName={levelName}
+            setLevelName={setLevelName}
+            boardSize={boardSize}
+            setBoardSize={setBoardSize}
+            generateLevelData={generateLevelData}
+          />
+        </div>
+        <AuthorFooter />
+      </div>
     </div>
   );
 };
