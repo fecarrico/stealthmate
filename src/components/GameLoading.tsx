@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Shield } from 'lucide-react';
 
 interface GameLoadingProps {
   resetGame: () => void;
@@ -11,6 +11,7 @@ interface GameLoadingProps {
 const GameLoading: React.FC<GameLoadingProps> = ({ resetGame, errorMessage }) => {
   return (
     <div className="text-zinc-300 flex flex-col items-center">
+      <Shield className="h-10 w-10 text-amber-500 mb-4" />
       {errorMessage ? (
         <>
           <p className="mb-4 text-red-400">{errorMessage}</p>
@@ -25,7 +26,7 @@ const GameLoading: React.FC<GameLoadingProps> = ({ resetGame, errorMessage }) =>
             <p>Loading game...</p>
           </div>
           <Button onClick={resetGame} className="bg-amber-600 hover:bg-amber-700">
-            Start Game
+            Return to Levels
           </Button>
         </>
       )}
