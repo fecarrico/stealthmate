@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { LevelData, CellType, GameCell } from '../../utils/levelData';
 
@@ -28,35 +27,44 @@ export const useBoard = () => {
         (_, y) =>
           Array.from({ length: BOARD_SIZE }, (_, x) => ({
             type: CellType.EMPTY,
-            position: [x, y],
+            position: [y, x], // Swap to match the expected [row, col] format
          }))
       );
 
       // Place kings
       (levelData.kings || []).forEach((item) => {
         if (item && item.length === 2) {
-          board[item[1]][item[0]].type = CellType.KING;
+          const [kingX, kingY] = item;
+          if (kingX >= 0 && kingX < BOARD_SIZE && kingY >= 0 && kingY < BOARD_SIZE) {
+            board[kingY][kingX].type = CellType.KING;
+          }
         }
       });
 
       // Place enemies
-     (levelData.enemies || []).forEach((item) => {
-       if (item && item.position && item.position.length === 2) {
-         board[item.position[0]][item.position[1]].type = item.type;
-       }
-     });
+      (levelData.enemies || []).forEach((item) => {
+        if (item && item.position && item.position.length === 2) {
+          const [enemyX, enemyY] = item.position;
+          if (enemyX >= 0 && enemyX < BOARD_SIZE && enemyY >= 0 && enemyY < BOARD_SIZE) {
+            board[enemyY][enemyX].type = item.type;
+          }
+        }
+      });
 
       // Place boxes
-     (levelData.boxes || []).forEach((item) => {
-       if (item && item.length === 2) {
-         board[item[0]][item[1]].type = CellType.BOX;
-       }
-     });
+      (levelData.boxes || []).forEach((item) => {
+        if (item && item.length === 2) {
+          const [boxX, boxY] = item;
+          if (boxX >= 0 && boxX < BOARD_SIZE && boxY >= 0 && boxY < BOARD_SIZE) {
+            board[boxY][boxX].type = CellType.BOX;
+          }
+        }
+      });
 
       // Place player
       const [playerX, playerY] = levelData.playerStart;
       if (playerX >= 0 && playerX < BOARD_SIZE && playerY >= 0 && playerY < BOARD_SIZE) {
-        board[playerX][playerY].type = CellType.PLAYER;
+        board[playerY][playerX].type = CellType.PLAYER;
       } else {
         throw new Error('Player start position is out of board bounds');
       }
@@ -68,7 +76,6 @@ export const useBoard = () => {
     }
   }, []);
 
- 
   // Calculate all enemy sight lines
   const calculateAllSightLines = useCallback(
     (board: GameCell[][]): [number, number][] => {

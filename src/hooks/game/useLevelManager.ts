@@ -22,7 +22,7 @@ export const useLevelManager = () => {
   
   // Load level
   const loadLevel = useCallback(
-    (levelNumber: number) => {
+    (levelNumber: number): GameState | null => {
       console.log('useLevelManager: loadLevel called with levelNumber:', levelNumber);
       const levelData = levelsData[levelNumber - 1];
       console.log("useLevelManager: levelData", levelData);
@@ -72,7 +72,7 @@ export const useLevelManager = () => {
   
   // Load a custom level
   const loadCustomLevel = useCallback(
-    (levelData: LevelData) => {
+    (levelData: LevelData): GameState | null => {
       try {
         console.log('useLevelManager: loadCustomLevel called with level:', levelData);
         

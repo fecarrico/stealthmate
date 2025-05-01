@@ -39,10 +39,9 @@ const GamePage: React.FC = () => {
     setShowHint,
     hintStep,
     setHintStep,
-    hintMoves
+    hintMoves,
+    initializeGame,
   } = useGameLogic();
-  
-  const { loadLevel, loadCustomLevel } = useLevelManager();
   
   // Load level when levelId changes
   useEffect(() => {
@@ -50,12 +49,16 @@ const GamePage: React.FC = () => {
     setIsLoading(true);
     setLoadingError(null);
     
-    if (mode === 'test' || mode === 'custom') {
-      const storedLevel = localStorage.getItem('testing_level');
-      console.log('Stored level from localStorage:', storedLevel ? 'exists' : 'not found');
-      
-      if (storedLevel) {
-        try {
+    const loadGame = async () => {
+      try {
+        if (mode === 'test' || mode === 'custom') {
+          const storedLevel = localStorage.getItem('testing_level');
+          console.log('Stored level from localStorage:', storedLevel ? 'exists' : 'not found');
+          
+          if (!storedLevel) {
+            throw new Error('No level data found');
+          }
+          
           const parsedLevel = JSON.parse(storedLevel);
           console.log('Parsed level data:', parsedLevel);
           
@@ -68,47 +71,39 @@ const GamePage: React.FC = () => {
             throw new Error('Level must have at least one king');
           }
           
-          const loadedState = loadCustomLevel(parsedLevel);
-          if (!loadedState) {
-            throw new Error('Failed to load level data');
+          const success = await initializeGame(parsedLevel, true);
+          if (!success) {
+            throw new Error('Failed to initialize custom level');
           }
-          setIsLoading(false);
-        } catch (error) {
-          console.error('Error loading test level:', error);
-          setLoadingError(`Failed to load test level: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          setIsLoading(false);
+        } else if (levelId) {
+          const levelNumber = parseInt(levelId, 10);
+          console.log('Loading standard level number:', levelNumber);
+          const success = await initializeGame(levelNumber);
+          if (!success) {
+            throw new Error(`Failed to load level ${levelId}`);
+          }
+        } else {
+          throw new Error('No level ID provided');
         }
-      } else {
-        console.error('No level data found in localStorage for test mode.');
-        setLoadingError('No level data found');
-        setIsLoading(false);
-      }
-    } else if (levelId) {
-      try {
-        const levelNumber = parseInt(levelId, 10);
-        console.log('Loading standard level number:', levelNumber);
-        const loadedState = loadLevel(levelNumber);
-        if (!loadedState) {
-          throw new Error('Failed to load level data');
-        }
+        
         setIsLoading(false);
       } catch (error) {
         console.error('Error loading level:', error);
-        setLoadingError(`Failed to load level ${levelId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setLoadingError(`${error instanceof Error ? error.message : 'Unknown error loading level'}`);
         setIsLoading(false);
       }
-    } else {
-      console.error('No levelId provided');
-      setLoadingError('No level ID provided');
-      setIsLoading(false);
-    }
-  }, [levelId, loadLevel, navigate, mode, loadCustomLevel]);
+    };
+    
+    loadGame();
+  }, [levelId, mode, initializeGame]);
   
   const handleMove = (direction: number[]) => {
     movePlayer(direction);
   };
   
   const handleKeyDown = (e: KeyboardEvent) => {
+    if (!gameState || isLoading) return;
+    
     switch (e.key) {
       case 'ArrowUp':
         handleMove([-1, 0]);
@@ -132,7 +127,7 @@ const GamePage: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameState]); // Add gameState as dependency to update when it changes
+  }, [gameState, isLoading]);
   
   const currentHintMove = showHint && hintMoves.length > 0 ? hintMoves[hintStep] : null;
 

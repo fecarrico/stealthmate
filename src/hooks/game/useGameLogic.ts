@@ -6,6 +6,7 @@ import { useBoard } from './useBoard';
 import { usePlayerMovement } from './usePlayerMovement';
 import { useGameHistory } from './useGameHistory';
 import { useHintSystem } from './useHintSystem';
+import { LevelData } from '../../utils/levelData';
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -22,6 +23,41 @@ export const useGameLogic = () => {
   const { movePlayer: processMove } = usePlayerMovement(calculateAllSightLines);
   const { undoMove: processUndo, redoMove: processRedo, resetLevel: processReset } = useGameHistory(calculateAllSightLines);
   const { getHint: processGetHint } = useHintSystem();
+  const { loadLevel, loadCustomLevel } = useLevelManager();
+
+  // Initialize game with a level number or custom level data
+  const initializeGame = useCallback(async (levelDataOrNumber: number | LevelData, isCustom: boolean = false) => {
+    try {
+      let initialGameState: GameState | null = null;
+      
+      if (isCustom) {
+        // Custom level is passed as a LevelData object
+        const levelData = levelDataOrNumber as LevelData;
+        initialGameState = loadCustomLevel(levelData);
+      } else {
+        // Standard level is passed as a number
+        const levelNumber = levelDataOrNumber as number;
+        initialGameState = loadLevel(levelNumber);
+      }
+      
+      if (!initialGameState) {
+        console.error("Failed to initialize game state");
+        return false;
+      }
+      
+      setGameState(initialGameState);
+      setHistory([initialGameState]);
+      setCurrentStep(0);
+      setNinjaInstinctAvailable(3); // Reset ninja instinct for new level
+      setShowHint(false);
+      setHintStep(0);
+      setHintMoves([]);
+      return true;
+    } catch (error) {
+      console.error("Error initializing game:", error);
+      return false;
+    }
+  }, [loadLevel, loadCustomLevel]);
 
   // Move player in a direction
   const movePlayer = useCallback((direction: number[]) => {
@@ -110,5 +146,6 @@ export const useGameLogic = () => {
     hintStep,
     setHintStep,
     hintMoves,
+    initializeGame,
   };
 };
