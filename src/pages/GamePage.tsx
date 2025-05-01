@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import GameBoard from '@/components/GameBoard';
+import GameLoading from '@/components/GameLoading';
 import { useGameLogic } from '@/hooks/game/useGameLogic';
 import { useLevelManager } from '@/hooks/game/useLevelManager';
 import VictoryPopup from '@/components/VictoryPopup';
@@ -27,15 +28,17 @@ const GamePage: React.FC = () => {
   const [hintMoves, setHintMoves] = useState<number[][]>([]);
   const [hintDialogOpen, setHintDialogOpen] = useState(false);
   const [hintCostMultiplier, setHintCostMultiplier] = useState(1);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   const { gameState, movePlayer, resetLevel, undoMove, redoMove, canUndo, canRedo, getHint, ninjaInstinctCost, ninjaInstinctAvailable, setNinjaInstinctAvailable, isGameOver, isVictory } = useGameLogic();
   const { loadLevel, loadCustomLevel } = useLevelManager();
   
-  const [levelData, setLevelData] = useState<LevelData | null>(null);
-  
   // Load level when levelId changes
   useEffect(() => {
     console.log('Loading game with mode:', mode, 'levelId:', levelId);
+    setIsLoading(true);
+    setLoadingError(null);
     
     if (mode === 'test' || mode === 'custom') {
       const storedLevel = localStorage.getItem('testing_level');
@@ -45,26 +48,49 @@ const GamePage: React.FC = () => {
         try {
           const parsedLevel = JSON.parse(storedLevel);
           console.log('Parsed level data:', parsedLevel);
-          loadCustomLevel(parsedLevel);
-          setLevelData(parsedLevel);
+          
+          // Validate level data
+          if (!parsedLevel.playerStart) {
+            throw new Error('Missing player start position');
+          }
+          
+          if (!parsedLevel.kings || parsedLevel.kings.length === 0) {
+            throw new Error('Level must have at least one king');
+          }
+          
+          const loadedState = loadCustomLevel(parsedLevel);
+          if (!loadedState) {
+            throw new Error('Failed to load level data');
+          }
+          setIsLoading(false);
         } catch (error) {
           console.error('Error loading test level:', error);
-          toast.error('Failed to load test level');
-          navigate('/levels');
+          setLoadingError(`Failed to load test level: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          setIsLoading(false);
         }
       } else {
         console.error('No level data found in localStorage for test mode.');
-        toast.error('No level data found');
-        navigate('/levels');
+        setLoadingError('No level data found');
+        setIsLoading(false);
       }
     } else if (levelId) {
-      const levelNumber = parseInt(levelId, 10);
-      console.log('Loading standard level number:', levelNumber);
-      loadLevel(levelNumber);
-      // For standard levels we don't need to set levelData
+      try {
+        const levelNumber = parseInt(levelId, 10);
+        console.log('Loading standard level number:', levelNumber);
+        const loadedState = loadLevel(levelNumber);
+        if (!loadedState) {
+          throw new Error('Failed to load level data');
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading level:', error);
+        setLoadingError(`Failed to load level ${levelId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setIsLoading(false);
+      }
     } else {
       console.error('No levelId provided');
-      navigate('/levels');
+      setLoadingError('No level ID provided');
+      setIsLoading(false);
     }
   }, [levelId, loadLevel, navigate, mode, loadCustomLevel]);
   
@@ -103,7 +129,7 @@ const GamePage: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [gameState]); // Add gameState as dependency to update when it changes
   
   const handleReset = () => {
     resetLevel();
@@ -148,7 +174,8 @@ const GamePage: React.FC = () => {
   const currentHintMove = showHint && hintMoves.length > 0 ? hintMoves[hintStep] : null;
   const hintCost = ninjaInstinctCost * hintCostMultiplier;
 
-  if (!gameState) {
+  // When there's an error or still loading
+  if (loadingError || isLoading || !gameState) {
     return (
       <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
         <div className="text-center mb-4">
@@ -157,7 +184,10 @@ const GamePage: React.FC = () => {
             <h1 className="text-2xl font-bold text-amber-500">StealthMate</h1>
           </div>
         </div>
-        <div className="text-zinc-400">Loading game...</div>
+        <GameLoading 
+          resetGame={() => navigate('/levels')}
+          errorMessage={loadingError || undefined}
+        />
       </div>
     );
   }
@@ -171,10 +201,10 @@ const GamePage: React.FC = () => {
         </div>
       </div>
       
-      {isVictory && gameState && (
+      {isVictory && (
         <VictoryPopup 
-          level={gameState.level || 1}
-          steps={gameState.steps || 0}
+          level={gameState.level}
+          steps={gameState.steps}
           levelName={gameState.levelName}
         />
       )}

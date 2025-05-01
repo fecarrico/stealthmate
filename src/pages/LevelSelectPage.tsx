@@ -1,18 +1,30 @@
 
 import React, {useState, useEffect} from 'react';
-import { getCustomLevels, LevelData } from '@/utils/levelData';
+import { getCustomLevels, LevelData, saveCustomLevel } from '@/utils/levelData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { loadLevelFromCode } from '@/utils/levelData';
 import { useGameState } from '@/hooks/useGameState';
-import { Shield, Code, ArrowRight, ChevronLeft } from 'lucide-react';
+import { Shield, Code, ArrowRight, ChevronLeft, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const LevelSelectPage: React.FC = () => {  
   const [levelCode, setLevelCode] = useState<string>('');
   const [customLevels, setCustomLevels] = useState<LevelData[]>([]);
+  const [levelToDelete, setLevelToDelete] = useState<LevelData | null>(null);
   const navigate = useNavigate();
 
   const {loadCustomLevel, bestScores, getLevels, loadLevel } = useGameState();
@@ -55,6 +67,34 @@ const LevelSelectPage: React.FC = () => {
     } catch (error) {
       console.error("Error loading custom level:", error);
       toast.error("Failed to load custom level");
+    }
+  };
+
+  const handleDeleteLevel = (event: React.MouseEvent, level: LevelData) => {
+    event.stopPropagation();
+    setLevelToDelete(level);
+  };
+
+  const confirmDeleteLevel = () => {
+    if (!levelToDelete) return;
+
+    try {
+      // Filter out the level to delete
+      const updatedLevels = customLevels.filter(level => level.id !== levelToDelete.id);
+      
+      // Save the updated levels to localStorage
+      localStorage.setItem('stealthmate_custom_levels', JSON.stringify(updatedLevels));
+      
+      // Update state
+      setCustomLevels(updatedLevels);
+      
+      // Clear selected level
+      setLevelToDelete(null);
+      
+      toast.success('Level deleted successfully');
+    } catch (error) {
+      console.error("Error deleting level:", error);
+      toast.error('Failed to delete level');
     }
   };
   
@@ -128,6 +168,12 @@ const LevelSelectPage: React.FC = () => {
                         Custom
                       </div>
                     </div>
+                    <button 
+                      className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 rounded-full text-white"
+                      onClick={(e) => handleDeleteLevel(e, level)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                   <CardContent className="p-3">
                     <h3 className="text-md font-bold text-zinc-300">{level.name}</h3>
@@ -172,6 +218,30 @@ const LevelSelectPage: React.FC = () => {
       <div className="w-full max-w-6xl mt-8 text-xs text-right text-zinc-500">
         Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
       </div>
+
+      <AlertDialog open={!!levelToDelete} onOpenChange={(open) => {
+        if (!open) setLevelToDelete(null);
+      }}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Custom Level</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this custom level? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-zinc-100">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-500 text-white hover:bg-red-600"
+              onClick={confirmDeleteLevel}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

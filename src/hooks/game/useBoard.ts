@@ -9,32 +9,63 @@ export const useBoard = () => {
   // Initialize the board from level data
   const initializeBoard = useCallback((levelData: LevelData): GameCell[][] => {
     console.log('useBoard: initializeBoard called with levelData:', levelData);
+    try {
+      // Validate required data
+      if (!levelData) {
+        throw new Error('Level data is undefined');
+      }
+      
+      if (!levelData.playerStart || levelData.playerStart.length !== 2) {
+        throw new Error('Player start position is invalid or missing');
+      }
+      
+      if (!levelData.kings || levelData.kings.length === 0) {
+        throw new Error('Level must have at least one king');
+      }
+      
       const board: GameCell[][] = Array.from(
-      { length: BOARD_SIZE },
-      (_, y) =>
-        Array.from({ length: BOARD_SIZE }, (_, x) => ({
-          type: CellType.EMPTY,
-          position: [x, y],
-       }))
-    );
+        { length: BOARD_SIZE },
+        (_, y) =>
+          Array.from({ length: BOARD_SIZE }, (_, x) => ({
+            type: CellType.EMPTY,
+            position: [x, y],
+         }))
+      );
 
       // Place kings
-    levelData.kings?.forEach((item) => {
-      board[item[1]][item[0]].type = CellType.KING;
-    });
+      (levelData.kings || []).forEach((item) => {
+        if (item && item.length === 2) {
+          board[item[1]][item[0]].type = CellType.KING;
+        }
+      });
 
-    // Place enemies
-   levelData.enemies.forEach((item) => {
-     board[item.position[0]][item.position[1]].type = item.type;
-   });
+      // Place enemies
+     (levelData.enemies || []).forEach((item) => {
+       if (item && item.position && item.position.length === 2) {
+         board[item.position[0]][item.position[1]].type = item.type;
+       }
+     });
 
-    // Place boxes
-   levelData.boxes.forEach((item) => {
-     board[item[0]][item[1]].type = CellType.BOX;
-   });
+      // Place boxes
+     (levelData.boxes || []).forEach((item) => {
+       if (item && item.length === 2) {
+         board[item[0]][item[1]].type = CellType.BOX;
+       }
+     });
 
-    board[levelData.playerStart[0]][levelData.playerStart[1]].type = CellType.PLAYER;
-    return board;
+      // Place player
+      const [playerX, playerY] = levelData.playerStart;
+      if (playerX >= 0 && playerX < BOARD_SIZE && playerY >= 0 && playerY < BOARD_SIZE) {
+        board[playerX][playerY].type = CellType.PLAYER;
+      } else {
+        throw new Error('Player start position is out of board bounds');
+      }
+      
+      return board;
+    } catch (error) {
+      console.error('Error initializing board:', error);
+      return null as unknown as GameCell[][];
+    }
   }, []);
 
  
@@ -42,6 +73,12 @@ export const useBoard = () => {
   const calculateAllSightLines = useCallback(
     (board: GameCell[][]): [number, number][] => {
       let allSightLines: [number, number][] = [];
+      
+      if (!board) {
+        console.error('Board is undefined in calculateAllSightLines');
+        return [];
+      }
+      
       for (let row = 0; row < board.length; row++) {
         for (let col = 0; col < board[row].length; col++) {
           const cell = board[row][col];
@@ -159,4 +196,3 @@ export const useBoard = () => {
     isValidPosition,
   };
 };
-

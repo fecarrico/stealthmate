@@ -23,7 +23,6 @@ export const useLevelManager = () => {
   // Load level
   const loadLevel = useCallback(
     (levelNumber: number) => {
-
       console.log('useLevelManager: loadLevel called with levelNumber:', levelNumber);
       const levelData = levelsData[levelNumber - 1];
       console.log("useLevelManager: levelData", levelData);
@@ -36,42 +35,67 @@ export const useLevelManager = () => {
 
       try {
           const board = initializeBoard(levelData);
+          if (!board) {
+            console.error('Failed to initialize board for level', levelNumber);
+            return null;
+          }
+          
           const sightLines = calculateAllSightLines(board);
           
-        const gameState: GameState = {
-          level: levelNumber,
-          board,
-          playerPosition: [...levelData.playerStart] as [number, number],
-          steps: 0,
-          sightLines,
-          gameOver: false,
-          victory: false,
-          message: "",
-          ninjaInstinct: 1,
-          levelName: levelData.name || `Level ${levelNumber}`,
-          history:[
-            {
-              board: JSON.parse(JSON.stringify(board)),
-              playerPosition: [...levelData.playerStart] as [number, number],
-              steps: 0
-            }
-          ],
-        };
-        return gameState;
+          const gameState: GameState = {
+            level: levelNumber,
+            board,
+            playerPosition: [...levelData.playerStart] as [number, number],
+            steps: 0,
+            sightLines,
+            gameOver: false,
+            victory: false,
+            message: "",
+            ninjaInstinct: 1,
+            levelName: levelData.name || `Level ${levelNumber}`,
+            history:[
+              {
+                board: JSON.parse(JSON.stringify(board)),
+                playerPosition: [...levelData.playerStart] as [number, number],
+                steps: 0
+              }
+            ],
+          };
+          return gameState;
       } catch (error) {
         console.error(`Error loading level ${levelNumber}:`, error);
         return null;
       }
     },
     [initializeBoard, calculateAllSightLines, levelsData]
-    );
+  );
   
   // Load a custom level
   const loadCustomLevel = useCallback(
     (levelData: LevelData) => {
       try {
         console.log('useLevelManager: loadCustomLevel called with level:', levelData);
+        
+        if (!levelData.playerStart) {
+          console.error('Custom level missing player start position');
+          return null;
+        }
+        
+        if (!levelData.kings || levelData.kings.length === 0) {
+          console.error('Custom level must have at least one king');
+          return null;
+        }
+        
+        // Ensure enemies and boxes arrays exist
+        levelData.enemies = levelData.enemies || [];
+        levelData.boxes = levelData.boxes || [];
+        
         const board = initializeBoard(levelData);
+        if (!board) {
+          console.error('Failed to initialize board for custom level');
+          return null;
+        }
+        
         const sightLines = calculateAllSightLines(board);
 
         const gameState: GameState = {
