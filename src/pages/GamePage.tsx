@@ -1,7 +1,7 @@
+import React from 'react';
+import { useState, useEffect } from 'react';
 
-import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import GameBoard from '@/components/GameBoard';
 import GameLoading from '@/components/GameLoading';
 import { useGameLogic } from '@/hooks/game/useGameLogic';
 import VictoryPopup from '@/components/VictoryPopup';
@@ -9,11 +9,29 @@ import GameHeader from '@/components/game/GameHeader';
 import GameFooter from '@/components/game/GameFooter';
 import { Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { useLevelManager } from '@/hooks/game/useLevelManager';
+import { Lightbulb } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/sonner';
+import { LevelData } from '@/utils/levelData';
+import GameArea from '@/components/GameArea';
+import AuthorFooter from '@/components/AuthorFooter';
+import GameTitle from '@/components/GameTitle';
+import GameControls from '@/components/GameControls';
+import GameBoard from '@/components/GameBoard';
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Extract levelId from query parameters
   const queryParams = new URLSearchParams(location.search);
   const levelId = queryParams.get('levelId');
@@ -22,29 +40,30 @@ const GamePage: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSightLines, setShowSightLines] = useState(false);
-  
-  const { 
-    gameState, 
-    movePlayer, 
-    resetLevel, 
-    undoMove, 
-    redoMove, 
-    canUndo, 
-    canRedo, 
-    getHint, 
-    ninjaInstinctCost, 
-    ninjaInstinctAvailable, 
-    setNinjaInstinctAvailable, 
-    isGameOver, 
+  const [showHint, setShowHint] = useState(false);
+  const [hintStep, setHintStep] = useState(0);
+  const [hintMoves, setHintMoves] = useState<number[][]>([]);
+  const [hintDialogOpen, setHintDialogOpen] = useState(false);
+  const [hintCostMultiplier, setHintCostMultiplier] = useState(1);
+
+  const {
+    gameState,
+    movePlayer,
+    resetLevel,
+    undoMove,
+    redoMove,
+    canUndo,
+    canRedo,
+    getHint,
+    ninjaInstinctCost,
+    ninjaInstinctAvailable,
+    setNinjaInstinctAvailable,
+    isGameOver,
     isVictory,
-    showHint,
-    setShowHint,
-    hintStep,
-    setHintStep,
-    hintMoves,
     initializeGame,
   } = useGameLogic();
-  
+  const { loadLevel, loadCustomLevel } = useLevelManager();
+
   // Load level when levelId changes
   useEffect(() => {
     console.log('Loading game with mode:', mode, 'levelId:', levelId);
@@ -54,36 +73,37 @@ const GamePage: React.FC = () => {
     const loadGame = async () => {
       try {
         if (mode === 'test' || mode === 'custom') {
-          const storedLevel = localStorage.getItem('testing_level');
-          console.log('Stored level from localStorage:', storedLevel ? 'exists' : 'not found');
-          
-          if (!storedLevel) {
-            throw new Error('No level data found');
-          }
-          
-          const parsedLevel = JSON.parse(storedLevel);
-          console.log('Parsed level data:', parsedLevel);
-          
-          // Validate level data
-          if (!parsedLevel.playerStart) {
-            throw new Error('Missing player start position');
-          }
-          
-          if (!parsedLevel.kings || parsedLevel.kings.length === 0) {
-            throw new Error('Level must have at least one king');
-          }
-          
-          const success = await initializeGame(parsedLevel, true);
-          if (!success) {
-            throw new Error('Failed to initialize custom level');
-          }
+           const storedLevel = localStorage.getItem('testing_level');
+           console.log(
+             'Stored level from localStorage:',
+             storedLevel ? 'exists' : 'not found'
+           );
+ 
+           if (!storedLevel) {
+             throw new Error('No level data found');
+           }
+ 
+           const parsedLevel = JSON.parse(storedLevel);
+           console.log('Parsed level data:', parsedLevel);
+ 
+           // Validate level data
+           if (!parsedLevel.playerStart) {
+             throw new Error('Missing player start position');
+           }
+ 
+           if (!parsedLevel.kings || parsedLevel.kings.length === 0) {
+             throw new Error('Level must have at least one king');
+           }
+           
+           loadCustomLevel(parsedLevel, (gameState) => {
+             initializeGame(gameState, true);
+           });
         } else if (levelId) {
           const levelNumber = parseInt(levelId, 10);
           console.log('Loading standard level number:', levelNumber);
-          const success = await initializeGame(levelNumber);
-          if (!success) {
-            throw new Error(`Failed to load level ${levelId}`);
-          }
+          loadLevel(levelNumber, (gameState) => {
+             initializeGame(gameState);
+          });
         } else {
           throw new Error('No level ID provided');
         }
@@ -94,10 +114,29 @@ const GamePage: React.FC = () => {
         setLoadingError(`${error instanceof Error ? error.message : 'Unknown error loading level'}`);
         setIsLoading(false);
       }
+<<<<<<< Updated upstream
     };
     
     loadGame();
   }, [levelId, mode, initializeGame]);
+=======
+    } else if (levelId) {
+      const levelNumber = parseInt(levelId, 10);
+      loadLevel(levelNumber);
+      // For standard levels we don't need to set levelData
+    } else {
+      console.error('No levelId provided');
+      navigate('/levels');
+    }
+  }, [levelId, loadLevel, navigate, mode, loadCustomLevel]); 
+  
+  // Reset hint state when level is reset or a new level is loaded
+  useEffect(() => {
+    setShowHint(false);
+    setHintStep(0);
+    setHintMoves([]);
+  }, [levelId]);
+>>>>>>> Stashed changes
   
   const handleMove = (direction: number[]) => {
     movePlayer(direction);
@@ -155,6 +194,7 @@ const GamePage: React.FC = () => {
   }
   
   return (
+<<<<<<< Updated upstream
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
       <GameHeader 
         levelName=""
@@ -224,8 +264,131 @@ const GamePage: React.FC = () => {
       <div className="mt-6 text-xs text-center text-zinc-500 w-full">
         Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
       </div>
+=======
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
+        <GameTitle/>
+        {isVictory && gameState && (
+          <VictoryPopup 
+            level={gameState.level || 1}
+            steps={gameState.steps || 0}
+            levelName={gameState.levelName}
+          />
+        )}
+      
+      {gameState !== null && (
+        <div className="w-full max-w-2xl">
+          <GameControls
+              resetLevel={handleReset}
+              navigate={navigate}
+              undoMove={undoMove}
+              redoMove={redoMove}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              levelName={gameState.levelName}
+            />
+            
+            <div className="aspect-square">
+              <GameArea gameState={gameState} showSightLines={true}
+                currentHintMove={currentHintMove}/>
+            </div>
+            
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-zinc-400">
+                Steps: <span className="font-bold text-zinc-200">{gameState.steps}</span>
+              </div>
+              
+              <div className="text-sm text-zinc-400">
+                Ninja Instinct: <span className="font-bold text-green-500">{ninjaInstinctAvailable}</span>
+              </div>
+              
+              <Dialog open={hintDialogOpen} onOpenChange={setHintDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="border-zinc-700 text-zinc-300">
+                    <Lightbulb className="mr-2 h-4 w-4" />
+                    Get Hint ({hintCost})
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+                  <DialogHeader>
+                    <DialogTitle>Get a Hint</DialogTitle>
+                    <DialogDescription>Is this information correct?
+                      Using a hint will cost you Ninja Instinct. Adjust the slider to choose how many steps to reveal.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="hint-steps" className="text-right">
+                        Hint Steps
+                      </label>
+                      <Slider
+                        id="hint-steps"
+                        defaultValue={[1]}
+                        max={5}
+                        step={1}
+                        onValueChange={(value) => setHintCostMultiplier(value[0])}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <label htmlFor="hint-cost" className="text-right">
+                        Hint Cost
+                      </label>
+                      <Input
+                        type="text"
+                        id="hint-cost"
+                        value={hintCost.toString()}
+                        readOnly
+                        className="col-span-3 bg-zinc-800 border-zinc-700"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="secondary" onClick={() => setHintDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" onClick={handleGetHint}>
+                      Get Hint
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            {showHint && hintMoves.length > 0 && (
+              <div className="flex justify-between items-center mt-4">
+                <Button
+                  variant="outline"
+                  className="border-zinc-700 text-zinc-300"
+                  onClick={handlePrevHint}
+                  disabled={hintStep === 0}
+                >
+                  Previous Hint
+                </Button>
+                
+                <span>
+                  Hint Step: {hintStep + 1} / {hintMoves.length}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  className="border-zinc-700 text-zinc-300"
+                  onClick={handleNextHint}
+                  disabled={hintStep === hintMoves.length - 1}
+                >
+                  Next Hint
+                </Button>
+              </div>
+            )}
+          </div>
+      )}
+        <div className="mt-6 text-xs text-center text-zinc-500 w-full">
+          <AuthorFooter/>
+        </div>
+>>>>>>> Stashed changes
     </div>
   );
-};
+}
 
 export default GamePage;

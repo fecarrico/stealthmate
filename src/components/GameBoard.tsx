@@ -64,7 +64,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <div 
-      className="game-board w-full h-full"
+      className="game-board w-full aspect-square"
       style={{ 
         display: 'grid',
         gridTemplateRows: `repeat(${rows}, 1fr)`,
@@ -75,7 +75,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         row.map((cell, colIndex) => (
           <div
             key={`${rowIndex}-${colIndex}`}
-            className={`
+            className={`w-full h-full
               game-cell relative 
               bg-${getCellColor(rowIndex, colIndex)} 
               ${editorMode ? 'cursor-pointer hover:opacity-75' : ''}

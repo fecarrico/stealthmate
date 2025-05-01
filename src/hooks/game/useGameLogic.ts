@@ -1,6 +1,6 @@
 
-import { useState, useCallback } from 'react';
-import { GameState } from './types';
+import { useState, useCallback, useEffect } from 'react';
+import { GameState } from './types'; 
 import { useLevelManager } from './useLevelManager';
 import { useBoard } from './useBoard';
 import { usePlayerMovement } from './usePlayerMovement';
@@ -9,9 +9,11 @@ import { useHintSystem } from './useHintSystem';
 import { LevelData } from '../../utils/levelData';
 import { toast } from '@/components/ui/sonner';
 
+
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [history, setHistory] = useState<GameState[]>([]);
+  const { loadInitialLevel } = useLevelManager();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [ninjaInstinctAvailable, setNinjaInstinctAvailable] = useState<number>(3);
   const [showHint, setShowHint] = useState(false);
@@ -104,6 +106,12 @@ export const useGameLogic = () => {
     setGameState(nextGameState);
     setCurrentStep(currentStep + 1);
   }, [gameState, history, currentStep, processRedo]);
+
+  useEffect(() => {
+    loadInitialLevel(1, setGameState);
+  }, [loadInitialLevel]);
+
+
 
   // Get hint for current level
   const getHint = useCallback(async () => {
