@@ -1,17 +1,18 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
 import EditorSidebar from './levelEditor/EditorSidebar';
 import { LevelData, CellType, GameCell } from '@/utils/levelData';
 import { toast } from '@/components/ui/sonner';
-import AuthorFooter from './AuthorFooter';
+import AuthorFooter from './levelEditor/AuthorFooter';
 
 const LevelEditor: React.FC = () => {
-  const [boardSize, setBoardSize] = useState(5);
+  const [boardSize, setBoardSize] = useState<number>(5);
   const [board, setBoard] = useState<GameCell[][]>([]);
   const [sightLines, setSightLines] = useState<any[]>([]);
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
-  const [activeTool, setActiveTool] = useState<CellType>(CellType.EMPTY);
+  const [selectedCellType, setSelectedCellType] = useState<CellType>(CellType.EMPTY);
   const [levelName, setLevelName] = useState<string>("Custom Level");
   const [playerStart, setPlayerStart] = useState<[number, number]>([-1, -1]);
   const [kings, setKings] = useState<[number, number][]>([]);
@@ -26,10 +27,10 @@ const LevelEditor: React.FC = () => {
   const initializeBoard = useCallback(() => {
     const newBoard: GameCell[][] = Array.from(
       { length: boardSize },
-      (_, y) =>
-        Array.from({ length: boardSize }, (_, x) => ({
+      (_, rowIndex) =>
+        Array.from({ length: boardSize }, (_, colIndex) => ({
           type: CellType.EMPTY,
-          position: [x, y],
+          position: [rowIndex, colIndex],
         }))
     );
     setBoard(newBoard);
@@ -45,9 +46,9 @@ const LevelEditor: React.FC = () => {
     const newBoard = board.map((rowArray, rowIndex) =>
       rowArray.map((cell, colIndex) => {
         if (rowIndex === row && colIndex === col) {
-          let newType = activeTool;
+          let newType = selectedCellType;
 
-          if (activeTool === CellType.PLAYER) {
+          if (selectedCellType === CellType.PLAYER) {
             // Clear previous player position
             if (playerStart[0] !== -1 && playerStart[1] !== -1) {
               board[playerStart[0]][playerStart[1]].type = CellType.EMPTY;
@@ -56,7 +57,7 @@ const LevelEditor: React.FC = () => {
             newType = CellType.PLAYER;
           }
 
-          if (activeTool === CellType.KING) {
+          if (selectedCellType === CellType.KING) {
             const isKingAlready = kings.some(king => king[0] === row && king[1] === col);
             if (!isKingAlready) {
               setKings([...kings, [row, col]]);
@@ -67,7 +68,7 @@ const LevelEditor: React.FC = () => {
             setKings(kings.filter(king => !(king[0] === row && king[1] === col)));
           }
 
-          if (activeTool === CellType.EMPTY && cell.type === CellType.PLAYER) {
+          if (selectedCellType === CellType.EMPTY && cell.type === CellType.PLAYER) {
             setPlayerStart([-1, -1]);
           }
 
@@ -134,19 +135,25 @@ const LevelEditor: React.FC = () => {
       return null;
     }
     
-    const kingsData = kings.map(king => [king[0], king[1]]);
-    const boxesData = boxes.map(box => [box[0], box[1]]);
-
+    const kingsData: [number, number][] = kings.map(king => [king[0], king[1]]);
+    const boxesData: [number, number][] = boxes.map(box => [box[0], box[1]]);
+    
+    const timestamp = Date.now();
     const levelData: LevelData = {
+      id: timestamp,
+      level: 1000 + (timestamp % 1000),
       name: levelName,
-      level: 0,
-      boardSize: boardSize,
       playerStart: [playerStart[0], playerStart[1]],
       kings: kingsData,
       enemies: enemies,
       boxes: boxesData,
+      isCustom: true
     };
     return levelData;
+  };
+
+  const handleBoardSizeChange = (newSize: number[]) => {
+    setBoardSize(newSize[0]);
   };
 
   return (
@@ -163,12 +170,12 @@ const LevelEditor: React.FC = () => {
             canSaveLevel={canSaveLevel}
           />
           <EditorSidebar
-            activeTool={activeTool}
-            setActiveTool={setActiveTool}
             levelName={levelName}
             setLevelName={setLevelName}
-            boardSize={boardSize}
-            setBoardSize={setBoardSize}
+            boardSize={[boardSize, boardSize]}
+            handleBoardSizeChange={handleBoardSizeChange}
+            selectedCellType={selectedCellType}
+            setSelectedCellType={setSelectedCellType}
             generateLevelData={generateLevelData}
           />
         </div>

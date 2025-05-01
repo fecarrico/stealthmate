@@ -31,16 +31,20 @@ const GamePage: React.FC = () => {
   const { gameState, movePlayer, resetLevel, undoMove, redoMove, canUndo, canRedo, getHint, ninjaInstinctCost, ninjaInstinctAvailable, setNinjaInstinctAvailable, isGameOver, isVictory } = useGameLogic();
   const { loadLevel, loadCustomLevel } = useLevelManager();
   
-  // Changed the type to LevelData | null to match the expected return type
   const [levelData, setLevelData] = useState<LevelData | null>(null);
   
   // Load level when levelId changes
   useEffect(() => {
+    console.log('Loading game with mode:', mode, 'levelId:', levelId);
+    
     if (mode === 'test' || mode === 'custom') {
       const storedLevel = localStorage.getItem('testing_level');
+      console.log('Stored level from localStorage:', storedLevel ? 'exists' : 'not found');
+      
       if (storedLevel) {
         try {
           const parsedLevel = JSON.parse(storedLevel);
+          console.log('Parsed level data:', parsedLevel);
           loadCustomLevel(parsedLevel);
           setLevelData(parsedLevel);
         } catch (error) {
@@ -55,6 +59,7 @@ const GamePage: React.FC = () => {
       }
     } else if (levelId) {
       const levelNumber = parseInt(levelId, 10);
+      console.log('Loading standard level number:', levelNumber);
       loadLevel(levelNumber);
       // For standard levels we don't need to set levelData
     } else {
@@ -142,6 +147,20 @@ const GamePage: React.FC = () => {
   
   const currentHintMove = showHint && hintMoves.length > 0 ? hintMoves[hintStep] : null;
   const hintCost = ninjaInstinctCost * hintCostMultiplier;
+
+  if (!gameState) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
+        <div className="text-center mb-4">
+          <div className="flex justify-center items-center mb-2">
+            <Shield className="h-6 w-6 text-amber-500 mr-2" />
+            <h1 className="text-2xl font-bold text-amber-500">StealthMate</h1>
+          </div>
+        </div>
+        <div className="text-zinc-400">Loading game...</div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
@@ -160,155 +179,153 @@ const GamePage: React.FC = () => {
         />
       )}
       
-      {gameState && (
-        <div className="w-full max-w-2xl">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <Button 
-                variant="outline" 
-                className="mr-2 border-zinc-700 text-zinc-300"
-                onClick={() => navigate('/levels')}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Levels
-              </Button>
-              <Button 
-                variant="outline" 
-                className="border-zinc-700 text-zinc-300"
-                onClick={handleReset}
-              >
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Reset Level
-              </Button>
-            </div>
-            
-            <div className="text-xl font-bold">
-              {gameState.levelName}
-            </div>
-            
-            <div>
-              <Button 
-                variant="outline" 
-                className="mr-2 border-zinc-700 text-zinc-300"
-                onClick={undoMove}
-                disabled={!canUndo}
-              >
-                <ChevronsLeft className="mr-2 h-4 w-4" />
-                Undo
-              </Button>
-              <Button 
-                variant="outline" 
-                className="border-zinc-700 text-zinc-300"
-                onClick={redoMove}
-                disabled={!canRedo}
-              >
-                <ChevronsRight className="mr-2 h-4 w-4" />
-                Redo
-              </Button>
-            </div>
+      <div className="w-full max-w-2xl">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <Button 
+              variant="outline" 
+              className="mr-2 border-zinc-700 text-zinc-300"
+              onClick={() => navigate('/levels')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Levels
+            </Button>
+            <Button 
+              variant="outline" 
+              className="border-zinc-700 text-zinc-300"
+              onClick={handleReset}
+            >
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Reset Level
+            </Button>
           </div>
           
-          <div className="aspect-square">
-            <GameBoard 
-              board={gameState.board} 
-              sightLines={gameState.sightLines}
-              playerPosition={gameState.playerPosition}
-              currentHintMove={currentHintMove}
-              showSightLines={true}
-            />
+          <div className="text-xl font-bold">
+            {gameState.levelName}
           </div>
           
-          <div className="flex justify-between items-center mt-4">
-            <div className="text-sm text-zinc-400">
-              Steps: <span className="font-bold text-zinc-200">{gameState.steps}</span>
-            </div>
-            
-            <div className="text-sm text-zinc-400">
-              Ninja Instinct: <span className="font-bold text-green-500">{ninjaInstinctAvailable}</span>
-            </div>
-            
-            <Dialog open={hintDialogOpen} onOpenChange={setHintDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="border-zinc-700 text-zinc-300">
-                  <Lightbulb className="mr-2 h-4 w-4" />
-                  Get Hint ({hintCost})
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
-                <DialogHeader>
-                  <DialogTitle>Get a Hint</DialogTitle>
-                  <DialogDescription>
-                    Using a hint will cost you Ninja Instinct. Adjust the slider to choose how many steps to reveal.
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="hint-steps" className="text-right">
-                      Hint Steps
-                    </label>
-                    <Slider
-                      id="hint-steps"
-                      defaultValue={[1]}
-                      max={5}
-                      step={1}
-                      onValueChange={(value) => setHintCostMultiplier(value[0])}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="hint-cost" className="text-right">
-                      Hint Cost
-                    </label>
-                    <Input
-                      type="text"
-                      id="hint-cost"
-                      value={hintCost.toString()}
-                      readOnly
-                      className="col-span-3 bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-end space-x-2">
-                  <Button variant="secondary" onClick={() => setHintDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" onClick={handleGetHint}>
-                    Get Hint
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+          <div>
+            <Button 
+              variant="outline" 
+              className="mr-2 border-zinc-700 text-zinc-300"
+              onClick={undoMove}
+              disabled={!canUndo}
+            >
+              <ChevronsLeft className="mr-2 h-4 w-4" />
+              Undo
+            </Button>
+            <Button 
+              variant="outline" 
+              className="border-zinc-700 text-zinc-300"
+              onClick={redoMove}
+              disabled={!canRedo}
+            >
+              <ChevronsRight className="mr-2 h-4 w-4" />
+              Redo
+            </Button>
           </div>
-          
-          {showHint && hintMoves.length > 0 && (
-            <div className="flex justify-between items-center mt-4">
-              <Button
-                variant="outline"
-                className="border-zinc-700 text-zinc-300"
-                onClick={handlePrevHint}
-                disabled={hintStep === 0}
-              >
-                Previous Hint
-              </Button>
-              
-              <span>
-                Hint Step: {hintStep + 1} / {hintMoves.length}
-              </span>
-              
-              <Button
-                variant="outline"
-                className="border-zinc-700 text-zinc-300"
-                onClick={handleNextHint}
-                disabled={hintStep === hintMoves.length - 1}
-              >
-                Next Hint
-              </Button>
-            </div>
-          )}
         </div>
-      )}
+        
+        <div className="aspect-square bg-zinc-900 rounded-lg border border-zinc-800">
+          <GameBoard 
+            board={gameState.board} 
+            sightLines={gameState.sightLines}
+            playerPosition={gameState.playerPosition}
+            currentHintMove={currentHintMove}
+            showSightLines={true}
+          />
+        </div>
+        
+        <div className="flex justify-between items-center mt-4">
+          <div className="text-sm text-zinc-400">
+            Steps: <span className="font-bold text-zinc-200">{gameState.steps}</span>
+          </div>
+          
+          <div className="text-sm text-zinc-400">
+            Ninja Instinct: <span className="font-bold text-green-500">{ninjaInstinctAvailable}</span>
+          </div>
+          
+          <Dialog open={hintDialogOpen} onOpenChange={setHintDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-zinc-700 text-zinc-300">
+                <Lightbulb className="mr-2 h-4 w-4" />
+                Get Hint ({hintCost})
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+              <DialogHeader>
+                <DialogTitle>Get a Hint</DialogTitle>
+                <DialogDescription>
+                  Using a hint will cost you Ninja Instinct. Adjust the slider to choose how many steps to reveal.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="hint-steps" className="text-right">
+                    Hint Steps
+                  </label>
+                  <Slider
+                    id="hint-steps"
+                    defaultValue={[1]}
+                    max={5}
+                    step={1}
+                    onValueChange={(value) => setHintCostMultiplier(value[0])}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="hint-cost" className="text-right">
+                    Hint Cost
+                  </label>
+                  <Input
+                    type="text"
+                    id="hint-cost"
+                    value={hintCost.toString()}
+                    readOnly
+                    className="col-span-3 bg-zinc-800 border-zinc-700"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button variant="secondary" onClick={() => setHintDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" onClick={handleGetHint}>
+                  Get Hint
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {showHint && hintMoves.length > 0 && (
+          <div className="flex justify-between items-center mt-4">
+            <Button
+              variant="outline"
+              className="border-zinc-700 text-zinc-300"
+              onClick={handlePrevHint}
+              disabled={hintStep === 0}
+            >
+              Previous Hint
+            </Button>
+            
+            <span>
+              Hint Step: {hintStep + 1} / {hintMoves.length}
+            </span>
+            
+            <Button
+              variant="outline"
+              className="border-zinc-700 text-zinc-300"
+              onClick={handleNextHint}
+              disabled={hintStep === hintMoves.length - 1}
+            >
+              Next Hint
+            </Button>
+          </div>
+        )}
+      </div>
       
       <div className="mt-6 text-xs text-center text-zinc-500 w-full">
         Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
