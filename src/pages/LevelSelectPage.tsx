@@ -1,11 +1,10 @@
-
 import React, {useState, useEffect} from 'react';
 import { getCustomLevels, LevelData, saveCustomLevel } from '@/utils/levelData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { loadLevelFromCode } from '@/utils/levelData';
 import { useGameState } from '@/hooks/useGameState';
-import { Shield, Code, ArrowRight, ChevronLeft, Trash2 } from 'lucide-react';
+import { Shield, Code, ArrowRight, ChevronLeft, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,6 +67,13 @@ const LevelSelectPage: React.FC = () => {
       console.error("Error loading custom level:", error);
       toast.error("Failed to load custom level");
     }
+  };
+
+  const handleEditLevel = (event: React.MouseEvent, level: LevelData) => {
+    event.stopPropagation();
+    // Store the level data for editing
+    localStorage.setItem('testing_level', JSON.stringify(level));
+    navigate('/editor');
   };
 
   const handleDeleteLevel = (event: React.MouseEvent, level: LevelData) => {
@@ -168,12 +174,20 @@ const LevelSelectPage: React.FC = () => {
                         Custom
                       </div>
                     </div>
-                    <button 
-                      className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 rounded-full text-white"
-                      onClick={(e) => handleDeleteLevel(e, level)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      <button 
+                        className="p-1.5 bg-blue-500/80 hover:bg-blue-600 rounded-full text-white"
+                        onClick={(e) => handleEditLevel(e, level)}
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button 
+                        className="p-1.5 bg-red-500/80 hover:bg-red-600 rounded-full text-white"
+                        onClick={(e) => handleDeleteLevel(e, level)}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                   <CardContent className="p-3">
                     <h3 className="text-md font-bold text-zinc-300">{level.name}</h3>

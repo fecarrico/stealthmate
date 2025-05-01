@@ -6,9 +6,12 @@ import { Loader2, Shield } from 'lucide-react';
 interface GameLoadingProps {
   resetGame: () => void;
   errorMessage?: string;
+  isTestMode?: boolean;
 }
 
-const GameLoading: React.FC<GameLoadingProps> = ({ resetGame, errorMessage }) => {
+const GameLoading: React.FC<GameLoadingProps> = ({ resetGame, errorMessage, isTestMode }) => {
+  const buttonText = isTestMode ? "Return to Editor" : "Return to Levels";
+  
   return (
     <div className="text-zinc-300 flex flex-col items-center justify-center min-h-[200px]">
       <Shield className="h-12 w-12 text-amber-500 mb-4" />
@@ -16,7 +19,7 @@ const GameLoading: React.FC<GameLoadingProps> = ({ resetGame, errorMessage }) =>
         <>
           <p className="mb-4 text-red-400 text-center">{errorMessage}</p>
           <Button onClick={resetGame} className="bg-amber-600 hover:bg-amber-700">
-            Return to Levels
+            {buttonText}
           </Button>
         </>
       ) : (
@@ -27,7 +30,7 @@ const GameLoading: React.FC<GameLoadingProps> = ({ resetGame, errorMessage }) =>
           </div>
           <p className="text-sm text-zinc-500 mb-4">Please wait while the level is being prepared.</p>
           <Button onClick={resetGame} className="bg-amber-600 hover:bg-amber-700">
-            Return to Levels
+            {buttonText}
           </Button>
         </>
       )}

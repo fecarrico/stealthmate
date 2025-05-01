@@ -4,10 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import GameBoard from '@/components/GameBoard';
 import GameLoading from '@/components/GameLoading';
 import { useGameLogic } from '@/hooks/game/useGameLogic';
-import { useLevelManager } from '@/hooks/game/useLevelManager';
 import VictoryPopup from '@/components/VictoryPopup';
 import GameHeader from '@/components/game/GameHeader';
 import GameFooter from '@/components/game/GameFooter';
+import { Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const GamePage: React.FC = () => {
   
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSightLines, setShowSightLines] = useState(false);
   
   const { 
     gameState, 
@@ -130,6 +132,10 @@ const GamePage: React.FC = () => {
   }, [gameState, isLoading]);
   
   const currentHintMove = showHint && hintMoves.length > 0 ? hintMoves[hintStep] : null;
+  
+  const backToEditor = () => {
+    navigate('/editor');
+  };
 
   // When there's an error or still loading
   if (loadingError || isLoading || !gameState) {
@@ -141,7 +147,7 @@ const GamePage: React.FC = () => {
           </div>
         </div>
         <GameLoading 
-          resetGame={() => navigate('/levels')}
+          resetGame={mode === 'test' ? backToEditor : () => navigate('/levels')}
           errorMessage={loadingError || undefined}
         />
       </div>
@@ -151,12 +157,14 @@ const GamePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
       <GameHeader 
-        levelName={gameState.levelName}
+        levelName=""
         resetLevel={resetLevel}
         undoMove={undoMove}
         redoMove={redoMove}
         canUndo={canUndo}
         canRedo={canRedo}
+        isTestMode={mode === 'test'}
+        backToEditor={backToEditor}
       />
       
       {isVictory && (
@@ -165,17 +173,37 @@ const GamePage: React.FC = () => {
           steps={gameState.steps}
           levelName={gameState.levelName}
           isCustomLevel={gameState.isCustomLevel}
+          isTestMode={mode === 'test'}
+          backToEditor={backToEditor}
         />
       )}
       
       <div className="w-full max-w-2xl">
-        <div className="aspect-square bg-zinc-900 rounded-lg border border-zinc-800">
+        {/* Level name moved here, above the board */}
+        <h2 className="text-2xl font-bold mb-4 text-amber-500 text-center">{gameState.levelName}</h2>
+        
+        <div className="aspect-square bg-zinc-900 rounded-lg border border-zinc-800 relative">
+          {/* Ninja Instinct Button */}
+          <div className="absolute top-2 right-2 z-10">
+            <Button
+              variant="outline"
+              className="bg-purple-700 hover:bg-purple-800 text-zinc-100 flex items-center gap-2"
+              onMouseDown={() => setShowSightLines(true)}
+              onMouseUp={() => setShowSightLines(false)}
+              onMouseLeave={() => setShowSightLines(false)}
+              disabled={ninjaInstinctAvailable <= 0}
+            >
+              <Eye className="h-4 w-4" />
+              Ninja Instinct: {ninjaInstinctAvailable}
+            </Button>
+          </div>
+          
           <GameBoard 
             board={gameState.board} 
             sightLines={gameState.sightLines}
             playerPosition={gameState.playerPosition}
             currentHintMove={currentHintMove}
-            showSightLines={true}
+            showSightLines={showSightLines}
           />
         </div>
         

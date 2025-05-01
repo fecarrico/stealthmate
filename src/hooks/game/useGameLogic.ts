@@ -7,6 +7,7 @@ import { usePlayerMovement } from './usePlayerMovement';
 import { useGameHistory } from './useGameHistory';
 import { useHintSystem } from './useHintSystem';
 import { LevelData } from '../../utils/levelData';
+import { toast } from '@/components/ui/sonner';
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -83,6 +84,7 @@ export const useGameLogic = () => {
     setShowHint(false);
     setHintStep(0);
     setHintMoves([]);
+    setNinjaInstinctAvailable(3); // Reset Ninja Instinct uses on level reset
   }, [gameState, processReset]);
 
   // Undo move

@@ -11,6 +11,8 @@ interface GameHeaderProps {
   redoMove: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  isTestMode?: boolean;
+  backToEditor?: () => void;
 }
 
 const GameHeader: React.FC<GameHeaderProps> = ({
@@ -19,7 +21,9 @@ const GameHeader: React.FC<GameHeaderProps> = ({
   undoMove,
   redoMove,
   canUndo,
-  canRedo
+  canRedo,
+  isTestMode = false,
+  backToEditor
 }) => {
   const navigate = useNavigate();
   
@@ -34,14 +38,25 @@ const GameHeader: React.FC<GameHeaderProps> = ({
       
       <div className="flex justify-between items-center mb-4">
         <div>
-          <Button 
-            variant="outline" 
-            className="mr-2 border-zinc-700 text-zinc-300"
-            onClick={() => navigate('/levels')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Levels
-          </Button>
+          {isTestMode ? (
+            <Button 
+              variant="outline" 
+              className="mr-2 border-zinc-700 text-zinc-300"
+              onClick={backToEditor}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Editor
+            </Button>
+          ) : (
+            <Button 
+              variant="outline" 
+              className="mr-2 border-zinc-700 text-zinc-300"
+              onClick={() => navigate('/levels')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Levels
+            </Button>
+          )}
           <Button 
             variant="outline" 
             className="border-zinc-700 text-zinc-300"
@@ -50,10 +65,6 @@ const GameHeader: React.FC<GameHeaderProps> = ({
             <RefreshCcw className="mr-2 h-4 w-4" />
             Reset Level
           </Button>
-        </div>
-        
-        <div className="text-xl font-bold">
-          {levelName}
         </div>
         
         <div>
