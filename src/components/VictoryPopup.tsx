@@ -2,9 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Save, Edit } from 'lucide-react';
+import { CheckCircle, Save, Edit, ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { LevelData, saveCustomLevel } from '@/utils/levelData';
+import { useGameState } from '@/hooks/useGameState';
 
 interface VictoryPopupProps {
   level: number;
@@ -13,6 +14,7 @@ interface VictoryPopupProps {
   isCustomLevel?: boolean;
   isTestMode?: boolean;
   backToEditor?: () => void;
+  totalSteps?: number;
 }
 
 const VictoryPopup: React.FC<VictoryPopupProps> = ({ 
@@ -21,10 +23,15 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
   levelName, 
   isCustomLevel,
   isTestMode,
-  backToEditor
+  backToEditor,
+  totalSteps
 }) => {
   const navigate = useNavigate();
+  const { getLevels } = useGameState();
   const levelText = isCustomLevel ? "Custom Level" : `Level ${level}`;
+
+  const levels = getLevels();
+  const isLastLevel = !isCustomLevel && level >= levels.length;
   
   const handleSaveLevel = () => {
     try {
@@ -48,6 +55,39 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
       console.error('Error saving level:', error);
     }
   };
+  
+  const handleNextLevel = () => {
+    navigate(`/game?levelId=${level + 1}`);
+  };
+
+  // Show game completion message if it's the last level
+  if (isLastLevel) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-8 max-w-md text-center transform animate-scale-in">
+          <div className="text-amber-500 text-6xl mb-4">🎉</div>
+          <h2 className="text-3xl font-bold text-amber-500 mb-4">Game Complete!</h2>
+          <p className="text-xl text-zinc-300 mb-4">Congratulations!</p>
+          <p className="text-lg text-zinc-400 mb-6">
+            You have completed all levels with a total of {totalSteps} steps.
+          </p>
+          
+          <div className="text-sm text-zinc-500 mb-6 p-4 bg-zinc-800/50 rounded-md">
+            This game was created by Felipe Carriço.<br/>
+            <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">
+              LinkedIn Profile
+            </a>
+          </div>
+          
+          <div className="flex justify-center gap-4">
+            <Button onClick={() => navigate('/levels')} className="bg-amber-600 hover:bg-amber-700 text-zinc-950">
+              Back to Levels
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
@@ -77,10 +117,23 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
                 Back to Editor
               </Button>
             </>
-          ) : (
+          ) : isCustomLevel ? (
             <Button onClick={() => navigate('/levels')} className="bg-amber-600 hover:bg-amber-700 text-zinc-950">
               Back to Levels
             </Button>
+          ) : (
+            <>
+              <Button onClick={() => navigate('/levels')} className="bg-zinc-600 hover:bg-zinc-700 text-zinc-100">
+                Back to Levels
+              </Button>
+              <Button 
+                onClick={handleNextLevel} 
+                className="bg-amber-600 hover:bg-amber-700 text-zinc-950 flex items-center gap-2"
+              >
+                Next Level
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </>
           )}
         </div>
       </div>

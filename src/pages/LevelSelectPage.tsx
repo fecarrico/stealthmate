@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getCustomLevels, LevelData } from '@/utils/levelData';
 import { Input } from '@/components/ui/input';
@@ -74,7 +75,7 @@ const LevelSelectPage: React.FC = () => {
     event.stopPropagation();
     // Store the level data for editing
     localStorage.setItem('testing_level', JSON.stringify(level));
-    navigate('/editor');
+    navigate('/editor?editMode=true');
   };
 
   const handleDeleteLevel = (event: React.MouseEvent, level: LevelData) => {
@@ -225,6 +226,15 @@ const LevelSelectPage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        
+        <div className="flex justify-center mt-8">
+          <Button 
+            onClick={() => navigate('/editor')}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Create New Level
+          </Button>
+        </div>
       </div>
       
       <div className="w-full max-w-6xl mt-8 text-xs text-right text-zinc-500">

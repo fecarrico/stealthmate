@@ -14,10 +14,12 @@ import { toast } from '@/components/ui/sonner';
 import AuthorFooter from '@/components/AuthorFooter';
 import GameTitle from '@/components/GameTitle';
 import GameBoard from '@/components/GameBoard';
+import { useScores } from '@/hooks/game/useScores';
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { totalSteps } = useScores();
 
   // Extract levelId from query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -141,7 +143,7 @@ const GamePage: React.FC = () => {
   }, [gameState, isLoading, canUndo, canRedo]);
   
   const backToEditor = () => {
-    navigate('/editor');
+    navigate('/editor?editMode=true');
   };
 
   // When there's an error or still loading
@@ -180,6 +182,7 @@ const GamePage: React.FC = () => {
           isCustomLevel={gameState.isCustomLevel}
           isTestMode={mode === 'test'}
           backToEditor={backToEditor}
+          totalSteps={totalSteps}
         />
       )}
       

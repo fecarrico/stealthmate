@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
@@ -19,15 +18,30 @@ const LevelEditor: React.FC = () => {
   const [enemies, setEnemies] = useState<any[]>([]);
   const [boxes, setBoxes] = useState<[number, number][]>([]);
   const [editingLevelId, setEditingLevelId] = useState<number | null>(null);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we're editing an existing level
+    // Check URL params to see if we're editing a specific level
+    const urlParams = new URLSearchParams(window.location.search);
+    const editMode = urlParams.get('editMode') === 'true';
+    
+    // First clear any testing_level from localStorage if not in edit mode
+    if (!editMode) {
+      localStorage.removeItem('testing_level');
+      initializeBoard();
+      setIsEditMode(false);
+      return;
+    }
+    
+    // Otherwise, we're in edit mode - check for stored level
     const storedLevel = localStorage.getItem('testing_level');
-    if (storedLevel) {
+    if (storedLevel && editMode) {
       try {
         const levelData = JSON.parse(storedLevel);
         if (levelData) {
+          setIsEditMode(true);
+          
           // If level has an ID, we're editing an existing level
           if (levelData.id) {
             setEditingLevelId(levelData.id);
@@ -93,8 +107,6 @@ const LevelEditor: React.FC = () => {
 
   // Initialize board when boardSize changes
   useEffect(() => {
-    const storedLevel = localStorage.getItem('testing_level');
-    
     // Create empty board first
     const newBoard: GameCell[][] = Array.from(
       { length: boardSize },
@@ -106,73 +118,82 @@ const LevelEditor: React.FC = () => {
     );
     
     // If we're editing an existing level, populate the board with its pieces
-    if (storedLevel) {
-      try {
-        const levelData = JSON.parse(storedLevel);
-        
-        // Set player position
-        if (levelData.playerStart) {
-          const [playerRow, playerCol] = levelData.playerStart;
-          if (playerRow < boardSize && playerCol < boardSize) {
-            newBoard[playerRow][playerCol].type = CellType.PLAYER;
-            setPlayerStart([playerRow, playerCol]);
+    if (isEditMode) {
+      const storedLevel = localStorage.getItem('testing_level');
+      if (storedLevel) {
+        try {
+          const levelData = JSON.parse(storedLevel);
+          
+          // Set player position
+          if (levelData.playerStart) {
+            const [playerRow, playerCol] = levelData.playerStart;
+            if (playerRow < boardSize && playerCol < boardSize) {
+              newBoard[playerRow][playerCol].type = CellType.PLAYER;
+              setPlayerStart([playerRow, playerCol]);
+            }
           }
-        }
-        
-        // Set kings
-        const newKings: [number, number][] = [];
-        if (levelData.kings && levelData.kings.length) {
-          levelData.kings.forEach((king: [number, number]) => {
-            const [kingRow, kingCol] = king;
-            if (kingRow < boardSize && kingCol < boardSize) {
-              newBoard[kingRow][kingCol].type = CellType.KING;
-              newKings.push([kingRow, kingCol]);
-            }
-          });
-        }
-        setKings(newKings);
-        
-        // Set enemies
-        const newEnemies: any[] = [];
-        if (levelData.enemies && levelData.enemies.length) {
-          levelData.enemies.forEach((enemy: any) => {
-            if (enemy.position) {
-              const [enemyRow, enemyCol] = enemy.position;
-              if (enemyRow < boardSize && enemyCol < boardSize) {
-                newBoard[enemyRow][enemyCol].type = enemy.type;
-                newEnemies.push({
-                  type: enemy.type,
-                  position: [enemyRow, enemyCol]
-                });
+          
+          // Set kings
+          const newKings: [number, number][] = [];
+          if (levelData.kings && levelData.kings.length) {
+            levelData.kings.forEach((king: [number, number]) => {
+              const [kingRow, kingCol] = king;
+              if (kingRow < boardSize && kingCol < boardSize) {
+                newBoard[kingRow][kingCol].type = CellType.KING;
+                newKings.push([kingRow, kingCol]);
               }
-            }
-          });
+            });
+          }
+          setKings(newKings);
+          
+          // Set enemies
+          const newEnemies: any[] = [];
+          if (levelData.enemies && levelData.enemies.length) {
+            levelData.enemies.forEach((enemy: any) => {
+              if (enemy.position) {
+                const [enemyRow, enemyCol] = enemy.position;
+                if (enemyRow < boardSize && enemyCol < boardSize) {
+                  newBoard[enemyRow][enemyCol].type = enemy.type;
+                  newEnemies.push({
+                    type: enemy.type,
+                    position: [enemyRow, enemyCol]
+                  });
+                }
+              }
+            });
+          }
+          setEnemies(newEnemies);
+          
+          // Set boxes
+          const newBoxes: [number, number][] = [];
+          if (levelData.boxes && levelData.boxes.length) {
+            levelData.boxes.forEach((box: [number, number]) => {
+              const [boxRow, boxCol] = box;
+              if (boxRow < boardSize && boxCol < boardSize) {
+                newBoard[boxRow][boxCol].type = CellType.BOX;
+                newBoxes.push([boxRow, boxCol]);
+              }
+            });
+          }
+          setBoxes(newBoxes);
+          
+        } catch (error) {
+          console.error("Error populating board:", error);
         }
-        setEnemies(newEnemies);
-        
-        // Set boxes
-        const newBoxes: [number, number][] = [];
-        if (levelData.boxes && levelData.boxes.length) {
-          levelData.boxes.forEach((box: [number, number]) => {
-            const [boxRow, boxCol] = box;
-            if (boxRow < boardSize && boxCol < boardSize) {
-              newBoard[boxRow][boxCol].type = CellType.BOX;
-              newBoxes.push([boxRow, boxCol]);
-            }
-          });
-        }
-        setBoxes(newBoxes);
-        
-      } catch (error) {
-        console.error("Error populating board:", error);
       }
+    } else {
+      // Reset all pieces for a new level
+      setPlayerStart([-1, -1]);
+      setKings([]);
+      setEnemies([]);
+      setBoxes([]);
     }
     
     setBoard(newBoard);
     setSightLines([]);
     setSelectedCell(null);
     
-  }, [boardSize]);
+  }, [boardSize, isEditMode]);
 
   const initializeBoard = useCallback(() => {
     const newBoard: GameCell[][] = Array.from(
@@ -281,9 +302,11 @@ const LevelEditor: React.FC = () => {
     
     const levelData = generateLevelData();
     if (levelData) {
-      // Save the level if it has an ID (we're editing an existing level)
+      // Always save the level before testing
+      saveCustomLevel(levelData);
       if (editingLevelId) {
-        saveCustomLevel(levelData);
+        toast.success("Level updated successfully");
+      } else {
         toast.success("Level saved successfully");
       }
       
@@ -332,6 +355,7 @@ const LevelEditor: React.FC = () => {
             onCellClick={handleCellClick}
             handleTestLevel={handleTestLevel}
             canSaveLevel={canSaveLevel}
+            isEditMode={isEditMode}
           />
           <EditorSidebar
             levelName={levelName}
@@ -341,6 +365,7 @@ const LevelEditor: React.FC = () => {
             selectedCellType={selectedCellType}
             setSelectedCellType={setSelectedCellType}
             generateLevelData={generateLevelData}
+            isEditMode={isEditMode}
           />
         </div>
         <div className="fixed bottom-4 right-4 text-xs text-zinc-500">

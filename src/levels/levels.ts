@@ -1,11 +1,15 @@
-import { LevelData } from '../utils/levelData';
-import level1 from './level1';
-import level2 from './level2';
-import level3 from './level3';
-import level4 from './level4';
 
-const levels: LevelData[] = [
-  level1, level2, level3, level4
-];
+import { LevelData } from '../utils/levelData';
+
+/**
+ * Import all level files dynamically using import.meta.glob
+ * This technique allows the level system to automatically find all level files
+ */
+const levelModules = import.meta.glob<{ default: LevelData }>('./level*.ts', { eager: true });
+
+// Sort the levels by level number to ensure consistent ordering
+const levels: LevelData[] = Object.values(levelModules)
+  .map(module => module.default)
+  .sort((a, b) => a.level - b.level);
 
 export default levels;

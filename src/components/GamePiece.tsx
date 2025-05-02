@@ -11,7 +11,7 @@ const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false }) => {
   const getEmoji = () => {
     switch (type) {
       case CellType.PLAYER:
-        return isDetected ? '💨' : '🦹';
+        return isDetected ? '💨' : '🥷';
       case CellType.KING:
         return '👑';
       case CellType.ROOK:
