@@ -15,11 +15,11 @@ const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false }) => {
       case CellType.KING:
         return '👑';
       case CellType.ROOK:
-        return '🏰';
+        return '♖';
       case CellType.BISHOP:
-        return '⛪';
+        return '♗';
       case CellType.QUEEN:
-        return '👸';
+        return '♕';
       case CellType.BOX:
         return '📦';
       default:

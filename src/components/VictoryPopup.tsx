@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Save, Edit } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { LevelData, saveCustomLevel } from '@/utils/levelData';
 
 interface VictoryPopupProps {
   level: number;
@@ -34,17 +35,10 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
         return;
       }
       
-      const levelData = JSON.parse(storedLevel);
+      const levelData = JSON.parse(storedLevel) as LevelData;
       
-      // Get existing custom levels
-      const existingLevelsJSON = localStorage.getItem('stealthmate_custom_levels');
-      const existingLevels = existingLevelsJSON ? JSON.parse(existingLevelsJSON) : [];
-      
-      // Add new level or update if it exists
-      const updatedLevels = [...existingLevels, levelData];
-      
-      // Save to localStorage
-      localStorage.setItem('stealthmate_custom_levels', JSON.stringify(updatedLevels));
+      // Save the level (this will overwrite if it exists with same ID)
+      saveCustomLevel(levelData);
       toast.success('Level saved successfully');
       
       // Navigate to level select

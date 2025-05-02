@@ -29,6 +29,7 @@ export interface LevelData {
     boxes: [number, number][];
     board?: number[][];
     isCustom?: boolean;
+    boardSize?: number;
 }
 
 // Function to load custom level from level code

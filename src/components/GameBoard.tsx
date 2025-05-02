@@ -86,7 +86,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             key={`${rowIndex}-${colIndex}`}
             className={`w-full h-full
               game-cell relative 
-              bg-${getCellColor(rowIndex, colIndex)} 
+              ${getCellColor(rowIndex, colIndex)} 
               ${editorMode ? 'cursor-pointer hover:opacity-75' : ''}
               ${isSelected(rowIndex, colIndex) ? 'ring-2 ring-yellow-400' : ''}
               ${isHintMove(rowIndex, colIndex) ? 'ring-2 ring-green-400' : ''}

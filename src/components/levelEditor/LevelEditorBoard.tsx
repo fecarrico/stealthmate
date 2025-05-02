@@ -10,7 +10,6 @@ interface LevelEditorBoardProps {
   sightLines: any[];
   selectedCell: [number, number] | null;
   onCellClick: (row: number, col: number) => void;
-  handleSaveLevel: () => void;
   handleTestLevel: () => void;
   canSaveLevel: boolean;
 }
@@ -20,7 +19,6 @@ const LevelEditorBoard: React.FC<LevelEditorBoardProps> = ({
   sightLines,
   selectedCell,
   onCellClick,
-  handleSaveLevel,
   handleTestLevel,
   canSaveLevel
 }) => {
@@ -29,7 +27,6 @@ const LevelEditorBoard: React.FC<LevelEditorBoardProps> = ({
       <CardHeader>
         <CardTitle>
           <EditorHeader 
-            handleSaveLevel={handleSaveLevel} 
             handleTestLevel={handleTestLevel} 
             canSave={canSaveLevel}
           />

@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
 import EditorSidebar from './levelEditor/EditorSidebar';
-import { LevelData, CellType, GameCell } from '@/utils/levelData';
+import { LevelData, CellType, GameCell, saveCustomLevel } from '@/utils/levelData';
 import { toast } from '@/components/ui/sonner';
 import AuthorFooter from './AuthorFooter';
 
@@ -18,6 +18,7 @@ const LevelEditor: React.FC = () => {
   const [kings, setKings] = useState<[number, number][]>([]);
   const [enemies, setEnemies] = useState<any[]>([]);
   const [boxes, setBoxes] = useState<[number, number][]>([]);
+  const [editingLevelId, setEditingLevelId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +28,11 @@ const LevelEditor: React.FC = () => {
       try {
         const levelData = JSON.parse(storedLevel);
         if (levelData) {
+          // If level has an ID, we're editing an existing level
+          if (levelData.id) {
+            setEditingLevelId(levelData.id);
+          }
+          
           // Set level name
           setLevelName(levelData.name || "Custom Level");
           
@@ -73,8 +79,6 @@ const LevelEditor: React.FC = () => {
             // Set board size to max dimension + 1 (minimum 5)
             setBoardSize(Math.max(5, Math.max(maxRow, maxCol) + 1));
           }
-          
-          // We'll initialize the board in the next effect when boardSize is updated
         }
       } catch (error) {
         console.error("Error loading level for editing:", error);
@@ -278,26 +282,6 @@ const LevelEditor: React.FC = () => {
     }
   };
 
-  // Save level
-  const handleSaveLevel = () => {
-    if (!canSaveLevel) {
-      toast.error("Level must have a player and at least one king");
-      return;
-    }
-    
-    const levelData = generateLevelData();
-    if (levelData) {
-      try {
-        const levelCode = btoa(JSON.stringify(levelData));
-        navigator.clipboard.writeText(levelCode);
-        toast.success("Level code copied to clipboard");
-      } catch (error) {
-        console.error("Error generating level code:", error);
-        toast.error("Failed to generate level code");
-      }
-    }
-  };
-
   // Generate level data
   const generateLevelData = (): LevelData | null => {
     if (!hasPlayer() || !hasKing()) {
@@ -308,19 +292,26 @@ const LevelEditor: React.FC = () => {
     const kingsData: [number, number][] = kings.map(king => [king[0], king[1]]);
     const boxesData: [number, number][] = boxes.map(box => [box[0], box[1]]);
     
+    // Use existing ID if editing a level
     const timestamp = Date.now();
     const levelData: LevelData = {
-      id: timestamp,
-      level: 1000 + (timestamp % 1000),
+      id: editingLevelId || timestamp,
+      level: editingLevelId ? (editingLevelId % 1000) + 1000 : 1000 + (timestamp % 1000),
       name: levelName,
       playerStart: [playerStart[0], playerStart[1]],
       kings: kingsData,
       enemies: enemies,
       boxes: boxesData,
-      boardSize: boardSize,
       isCustom: true
     };
-    return levelData;
+    
+    // Add boardSize property to levelData
+    const finalLevelData = {
+      ...levelData,
+      boardSize: boardSize
+    };
+    
+    return finalLevelData as LevelData;
   };
 
   const handleBoardSizeChange = (newSize: number[]) => {
@@ -336,7 +327,6 @@ const LevelEditor: React.FC = () => {
             sightLines={sightLines}
             selectedCell={selectedCell}
             onCellClick={handleCellClick}
-            handleSaveLevel={handleSaveLevel}
             handleTestLevel={handleTestLevel}
             canSaveLevel={canSaveLevel}
           />
@@ -350,7 +340,7 @@ const LevelEditor: React.FC = () => {
             generateLevelData={generateLevelData}
           />
         </div>
-        <div className="mt-4 w-full text-right">
+        <div className="fixed bottom-4 right-4 text-xs text-zinc-500">
           <AuthorFooter />
         </div>
       </div>

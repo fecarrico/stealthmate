@@ -120,6 +120,14 @@ const GamePage: React.FC = () => {
       case 'ArrowRight':
         handleMove([0, 1]);
         break;
+      case 'z':
+      case 'Z':
+        if (canUndo) undoMove();
+        break;
+      case 'y':
+      case 'Y':
+        if (canRedo) redoMove();
+        break;
       default:
         break;
     }
@@ -130,7 +138,7 @@ const GamePage: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameState, isLoading]);
+  }, [gameState, isLoading, canUndo, canRedo]);
   
   const backToEditor = () => {
     navigate('/editor');
@@ -185,6 +193,8 @@ const GamePage: React.FC = () => {
             onMouseDown={() => setShowSightLines(true)}
             onMouseUp={() => setShowSightLines(false)}
             onMouseLeave={() => setShowSightLines(false)}
+            onTouchStart={() => setShowSightLines(true)}
+            onTouchEnd={() => setShowSightLines(false)}
             disabled={ninjaInstinctAvailable <= 0}
           >
             <Eye className="h-4 w-4" />
@@ -209,7 +219,7 @@ const GamePage: React.FC = () => {
         />
       </div>
       
-      <div className="mt-auto text-xs text-right text-zinc-500 w-full">
+      <div className="fixed bottom-4 right-4 text-xs text-zinc-500">
         <AuthorFooter />
       </div>
     </div>
