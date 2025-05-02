@@ -1,3 +1,4 @@
+
 import { LevelData, CellType } from '../utils/levelData';
 
 const level3: LevelData = {
@@ -28,6 +29,8 @@ const level3: LevelData = {
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0]
-  ]
+  ],
+  boardSize: 7
 };
+
 export default level3;

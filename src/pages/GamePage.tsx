@@ -8,18 +8,20 @@ import { useGameLogic } from '@/hooks/game/useGameLogic';
 import VictoryPopup from '@/components/VictoryPopup';
 import GameHeader from '@/components/game/GameHeader';
 import GameFooter from '@/components/game/GameFooter';
-import { Eye } from 'lucide-react';
+import { Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import AuthorFooter from '@/components/AuthorFooter';
 import GameTitle from '@/components/GameTitle';
 import GameBoard from '@/components/GameBoard';
 import { useScores } from '@/hooks/game/useScores';
+import { useMobile } from '@/hooks/use-mobile';
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalSteps } = useScores();
+  const isMobile = useMobile();
 
   // Extract levelId from query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -101,7 +103,7 @@ const GamePage: React.FC = () => {
     loadGame();
   }, [levelId, mode, initializeGame]);
   
-  const handleMove = (direction: number[]) => {
+  const handleMove = (direction: [number, number]) => {
     // Ensure we're passing a direction array to movePlayer
     if (direction && direction.length === 2) {
       movePlayer(direction);
@@ -162,6 +164,12 @@ const GamePage: React.FC = () => {
       </div>
     );
   }
+
+  const handleNinjaInstinct = (show: boolean) => {
+    if (!gameState || ninjaInstinctAvailable <= 0) return;
+    
+    setShowSightLines(show);
+  };
   
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
@@ -195,11 +203,11 @@ const GamePage: React.FC = () => {
           <Button
             variant="outline"
             className="bg-purple-700 hover:bg-purple-800 text-zinc-100 flex items-center gap-2"
-            onMouseDown={() => setShowSightLines(true)}
-            onMouseUp={() => setShowSightLines(false)}
-            onMouseLeave={() => setShowSightLines(false)}
-            onTouchStart={() => setShowSightLines(true)}
-            onTouchEnd={() => setShowSightLines(false)}
+            onMouseDown={() => handleNinjaInstinct(true)}
+            onMouseUp={() => handleNinjaInstinct(false)}
+            onMouseLeave={() => handleNinjaInstinct(false)}
+            onTouchStart={() => handleNinjaInstinct(true)}
+            onTouchEnd={() => handleNinjaInstinct(false)}
             disabled={ninjaInstinctAvailable <= 0}
           >
             <Eye className="h-4 w-4" />
@@ -217,6 +225,47 @@ const GamePage: React.FC = () => {
             detectingEnemies={gameState.detectingEnemies || []}
           />
         </div>
+
+        {/* Mobile Controls */}
+        {isMobile && (
+          <div className="mt-4">
+            <div className="flex flex-col items-center gap-2">
+              <Button 
+                variant="outline"
+                className="h-12 w-12 flex items-center justify-center bg-zinc-800"
+                onClick={() => handleMove([-1, 0])}
+              >
+                <ChevronUp className="h-6 w-6" />
+              </Button>
+              
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  className="h-12 w-12 flex items-center justify-center bg-zinc-800"
+                  onClick={() => handleMove([0, -1])}
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="h-12 w-12 flex items-center justify-center bg-zinc-800"
+                  onClick={() => handleMove([1, 0])}
+                >
+                  <ChevronDown className="h-6 w-6" />
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="h-12 w-12 flex items-center justify-center bg-zinc-800"
+                  onClick={() => handleMove([0, 1])}
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         
         <GameFooter
           steps={gameState.steps}

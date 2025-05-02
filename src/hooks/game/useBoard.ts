@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { LevelData, CellType, GameCell } from '../../utils/levelData';
 
@@ -22,15 +21,56 @@ export const useBoard = () => {
         throw new Error('Level must have at least one king');
       }
       
-      // Use the board size from level data if available, otherwise default to 5
-      const boardSize = levelData.boardSize || 5;
+      // Use the board size from level data if available, otherwise determine it from the board or other elements
+      let boardSize = levelData.boardSize;
       
+      if (!boardSize) {
+        // Check if board is present to determine size
+        if (levelData.board && levelData.board.length > 0) {
+          boardSize = levelData.board.length;
+        } else {
+          // Determine size from positions of elements
+          let maxDimension = 0;
+          
+          // Check player position
+          maxDimension = Math.max(maxDimension, levelData.playerStart[0], levelData.playerStart[1]);
+          
+          // Check kings positions
+          if (levelData.kings) {
+            levelData.kings.forEach(king => {
+              maxDimension = Math.max(maxDimension, king[0], king[1]);
+            });
+          }
+          
+          // Check enemies positions
+          if (levelData.enemies) {
+            levelData.enemies.forEach(enemy => {
+              maxDimension = Math.max(maxDimension, enemy.position[0], enemy.position[1]);
+            });
+          }
+          
+          // Check boxes positions
+          if (levelData.boxes) {
+            levelData.boxes.forEach(box => {
+              maxDimension = Math.max(maxDimension, box[0], box[1]);
+            });
+          }
+          
+          // Add 1 to max dimension to get size (because index starts at 0)
+          boardSize = maxDimension + 1;
+        }
+      }
+      
+      // Ensure boardSize is at least 5
+      boardSize = Math.max(5, boardSize);
+      
+      // Create the empty board
       const board: GameCell[][] = Array.from(
         { length: boardSize },
         (_, row) =>
           Array.from({ length: boardSize }, (_, col) => ({
             type: CellType.EMPTY,
-            position: [row, col],
+            position: [row, col] as [number, number],
          }))
       );
 
@@ -75,7 +115,7 @@ export const useBoard = () => {
       return board;
     } catch (error) {
       console.error('Error initializing board:', error);
-      return null as unknown as GameCell[][];
+      throw error;
     }
   }, []);
 

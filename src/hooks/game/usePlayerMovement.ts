@@ -1,181 +1,141 @@
-
 import { useCallback } from 'react';
 import { GameState } from './types';
 import { CellType } from '../../utils/levelData';
-import { isPlayerDetected, allKingsCaptured } from '../../utils/gameLogic';
 
-export const usePlayerMovement = (calculateAllSightLines: (board: any[][]) => [number, number][]) => {
-  // Move player in a direction
-  const movePlayer = useCallback((direction: number[], gameState: GameState) => {
+export const usePlayerMovement = (
+  calculateAllSightLines: (board: any[][]) => [number, number][]
+) => {
+  const movePlayer = useCallback((direction: [number, number], gameState: GameState) => {
     if (!gameState || gameState.gameOver || gameState.victory) return gameState;
 
-    const [dRow, dCol] = direction;
-    const { board, playerPosition, steps } = gameState;
-    const [row, col] = playerPosition;
-    const newRow = row + dRow;
-    const newCol = col + dCol;
-
-    // Check if the move is valid (within board bounds)
-    if (newRow < 0 || newRow >= board.length || newCol < 0 || newCol >= board[0].length) {
+    const [rowDelta, colDelta] = direction;
+    const [currentRow, currentCol] = gameState.playerPosition;
+    const newRow = currentRow + rowDelta;
+    const newCol = currentCol + colDelta;
+    
+    // Check if move is valid (within board bounds)
+    if (newRow < 0 || newRow >= gameState.board.length || newCol < 0 || newCol >= gameState.board[0].length) {
       return gameState;
     }
 
-    const newBoard = JSON.parse(JSON.stringify(board));
-    const targetCell = newBoard[newRow][newCol];
+    const targetCell = gameState.board[newRow][newCol];
+    
+    // Can't move to cells with enemies
+    if (
+      targetCell.type === CellType.ROOK ||
+      targetCell.type === CellType.BISHOP ||
+      targetCell.type === CellType.QUEEN
+    ) {
+      return gameState;
+    }
 
-    // Check if the target cell can be moved to
-    if (targetCell.type === CellType.EMPTY || targetCell.type === CellType.KING) {
-      // Move player
-      newBoard[row][col].type = CellType.EMPTY;
-      newBoard[newRow][newCol].type = CellType.PLAYER;
-
-      // Calculate new sight lines AFTER the player has moved
-      const newSightLines = calculateAllSightLines(newBoard);
-      
-      // Check if player is detected in their new position
-      const detected = isPlayerDetected([newRow, newCol], newSightLines);
-      const victory = targetCell.type === CellType.KING || allKingsCaptured(newBoard);
-      
-      // Find enemies that can see the player
-      const detectingEnemies: [number, number][] = [];
-      if (detected) {
-        // Loop through board to find enemies
-        for (let r = 0; r < board.length; r++) {
-          for (let c = 0; c < board[0].length; c++) {
-            const cell = board[r][c];
-            if (cell.type === CellType.ROOK || cell.type === CellType.BISHOP || cell.type === CellType.QUEEN) {
-              // Calculate sight lines for this enemy
-              const enemySightLines = calculateSightLines(newBoard, cell.type, [r, c]);
-              
-              // Check if player is in this enemy's sight line
-              if (enemySightLines.some(([sightR, sightC]) => sightR === newRow && sightC === newCol)) {
-                detectingEnemies.push([r, c]);
-              }
-            }
-          }
-        }
-      }
-
-      // Create new game state
-      const newGameState: GameState = {
-        ...gameState,
-        board: newBoard,
-        playerPosition: [newRow, newCol] as [number, number],
-        steps: steps + 1,
-        sightLines: newSightLines,
-        gameOver: detected,
-        victory: victory,
-        message: detected ? 'You were spotted!' : (victory ? 'Level Complete!' : ''),
-        detectingEnemies: detectingEnemies,
-        history: [
-          ...gameState.history,
-          {
-            board: JSON.parse(JSON.stringify(newBoard)),
-            playerPosition: [newRow, newCol] as [number, number],
-            steps: steps + 1
-          }
-        ]
-      };
-
-      return newGameState;
-    } 
-    // Handle box pushing
-    else if (targetCell.type === CellType.BOX) {
-      const boxNewRow = newRow + dRow;
-      const boxNewCol = newCol + dCol;
-      
-      // Check if box can be pushed (within bounds)
-      if (boxNewRow < 0 || boxNewRow >= board.length || boxNewCol < 0 || boxNewCol >= board[0].length) {
-        return gameState;
-      }
-      
-      const boxTargetCell = newBoard[boxNewRow][boxNewCol];
-      
-      // Check if box can be pushed to target cell
-      if (boxTargetCell.type === CellType.EMPTY || 
-          boxTargetCell.type === CellType.KING ||
-          boxTargetCell.type === CellType.ROOK ||
-          boxTargetCell.type === CellType.BISHOP ||
-          boxTargetCell.type === CellType.QUEEN) {
-        
-        // Move player
-        newBoard[row][col].type = CellType.EMPTY;
-        newBoard[newRow][newCol].type = CellType.PLAYER;
-        
-        // Push box
-        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
-        
-        // Calculate new sight lines AFTER both player and box have moved
-        const newSightLines = calculateAllSightLines(newBoard);
-        
-        // Check if player is detected in their new position
-        const detected = isPlayerDetected([newRow, newCol], newSightLines);
-        const victory = allKingsCaptured(newBoard);
-        
-        // Find enemies that can see the player
-        const detectingEnemies: [number, number][] = [];
-        if (detected) {
-          // Loop through board to find enemies
-          for (let r = 0; r < board.length; r++) {
-            for (let c = 0; c < board[0].length; c++) {
-              const cell = board[r][c];
-              if (cell.type === CellType.ROOK || cell.type === CellType.BISHOP || cell.type === CellType.QUEEN) {
-                // Calculate sight lines for this enemy
-                const enemySightLines = calculateSightLines(newBoard, cell.type, [r, c]);
-                
-                // Check if player is in this enemy's sight line
-                if (enemySightLines.some(([sightR, sightC]) => sightR === newRow && sightC === newCol)) {
-                  detectingEnemies.push([r, c]);
-                }
-              }
-            }
-          }
-        }
-        
-        // Create new game state
-        const newGameState: GameState = {
-          ...gameState,
-          board: newBoard,
-          playerPosition: [newRow, newCol] as [number, number],
-          steps: steps + 1,
-          sightLines: newSightLines,
-          gameOver: detected,
-          victory: victory,
-          message: detected ? 'You were spotted!' : (victory ? 'Level Complete!' : ''),
-          detectingEnemies: detectingEnemies,
-          history: [
-            ...gameState.history,
-            {
-              board: JSON.parse(JSON.stringify(newBoard)),
-              playerPosition: [newRow, newCol] as [number, number],
-              steps: steps + 1
-            }
-          ]
-        };
-        
-        return newGameState;
-      }
+    // Create new board
+    const newBoard = JSON.parse(JSON.stringify(gameState.board));
+    let usedNinjaInstinct = false;
+    
+    // Check if player is using Ninja Instinct
+    // When the player uses their Ninja Instinct to check sight lines but moves anyway
+    if (gameState.showingNinjaInstinct) {
+      usedNinjaInstinct = true;
     }
     
-    return gameState;
+    // Handle box pushing
+    if (targetCell.type === CellType.BOX) {
+      const boxNewRow = newRow + rowDelta;
+      const boxNewCol = newCol + colDelta;
+      
+      // Check if box can be pushed (within board bounds and to an empty cell)
+      if (
+        boxNewRow < 0 ||
+        boxNewRow >= newBoard.length ||
+        boxNewCol < 0 ||
+        boxNewCol >= newBoard[0].length ||
+        (newBoard[boxNewRow][boxNewCol].type !== CellType.EMPTY &&
+         newBoard[boxNewRow][boxNewCol].type !== CellType.KING)
+      ) {
+        return gameState;
+      }
+
+      // Move box
+      if (newBoard[boxNewRow][boxNewCol].type === CellType.KING) {
+        // Captured a king
+        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
+      } else {
+        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
+      }
+    }
+
+    // Move player
+    newBoard[currentRow][currentCol].type = CellType.EMPTY;
+    newBoard[newRow][newCol].type = CellType.PLAYER;
+
+    // Calculate new sight lines
+    const newSightLines = calculateAllSightLines(newBoard);
+    
+    // Check if player is detected
+    const isDetected = newSightLines.some(([r, c]) => r === newRow && c === newCol);
+    
+    // Find enemies that can see the player
+    const detectingEnemies: [number, number][] = [];
+    if (isDetected) {
+      newBoard.forEach((row, rowIndex) => {
+        row.forEach((cell, colIndex) => {
+          if (
+            cell.type === CellType.ROOK ||
+            cell.type === CellType.BISHOP ||
+            cell.type === CellType.QUEEN
+          ) {
+            const enemySightLines = calculateLineOfSight(
+              newBoard, 
+              cell.type, 
+              [rowIndex, colIndex]
+            );
+            
+            if (enemySightLines.some(([r, c]) => r === newRow && c === newCol)) {
+              detectingEnemies.push([rowIndex, colIndex]);
+            }
+          }
+        });
+      });
+    }
+
+    // Check for victory (no more kings)
+    const victory = !newBoard.some(row => 
+      row.some(cell => cell.type === CellType.KING)
+    );
+
+    return {
+      ...gameState,
+      board: newBoard,
+      playerPosition: [newRow, newCol] as [number, number],
+      steps: gameState.steps + 1,
+      sightLines: newSightLines,
+      gameOver: isDetected,
+      victory,
+      message: isDetected ? 'You were spotted! Game over.' : (victory ? 'Victory! All kings captured.' : ''),
+      detectingEnemies,
+      usedNinjaInstinct
+    };
   }, [calculateAllSightLines]);
 
-  // Helper function to calculate sight lines for a specific enemy
-  const calculateSightLines = (board: any[][], enemyType: CellType, position: [number, number]): [number, number][] => {
+  // Helper function to calculate line of sight for a single enemy
+  const calculateLineOfSight = (
+    board: any[][],
+    enemyType: CellType,
+    position: [number, number]
+  ): [number, number][] => {
     const sightLines: [number, number][] = [];
     const [row, col] = position;
     const boardSize: [number, number] = [board.length, board[0].length];
     
     const addPositionIfValid = (pos: [number, number]) => {
-      const [r, c] = pos;
-      if (r >= 0 && r < boardSize[0] && c >= 0 && c < boardSize[1]) {
-        const cell = board[r][c];
-        // Stop at boxes and kings
-        if (cell.type === CellType.BOX || cell.type === CellType.KING) {
-          return false;
+      if (pos[0] >= 0 && pos[0] < boardSize[0] && pos[1] >= 0 && pos[1] < boardSize[1]) {
+        const cell = board[pos[0]][pos[1]];
+        if (cell && cell.type !== CellType.BOX && cell.type !== CellType.KING) {
+          sightLines.push(pos);
+          return true;
         }
-        sightLines.push(pos);
-        return true;
+        return false;
       }
       return false;
     };

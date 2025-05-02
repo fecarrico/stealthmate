@@ -52,10 +52,15 @@ export const useGameLogic = () => {
   }, [loadLevel, loadCustomLevel]);
 
   // Move player in a direction
-  const movePlayer = useCallback((direction: number[]) => {
+  const movePlayer = useCallback((direction: [number, number]) => {
     if (!gameState) return;
 
-    const newGameState = processMove(direction, gameState);
+    const updatedGameState = {
+      ...gameState,
+      showingNinjaInstinct: gameState.showSightLines
+    };
+    
+    const newGameState = processMove(direction, updatedGameState);
     
     if (newGameState !== gameState) {
       // Decrease ninja instinct if player used it in this move

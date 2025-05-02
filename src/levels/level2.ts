@@ -27,7 +27,8 @@ const level2: LevelData = {
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0]
-  ]
+  ],
+  boardSize: 7
 };
 
 export default level2;
