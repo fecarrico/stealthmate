@@ -8,7 +8,6 @@ import { Shield, Code, ArrowRight, ChevronLeft, Trash2, Edit } from 'lucide-reac
 import { toast } from '@/components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-<<<<<<< Updated upstream
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +19,8 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
-=======
 import GameTitle from '@/components/GameTitle';
->>>>>>> Stashed changes
+
 const LevelSelectPage: React.FC = () => {
   const [levelCode, setLevelCode] = useState<string>('');
   const [customLevels, setCustomLevels] = useState<LevelData[]>([]);
