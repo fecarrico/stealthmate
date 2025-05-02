@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+
+import { useCallback } from 'react';
 import { LevelData, CellType, GameCell } from '../../utils/levelData';
 
 // Hooks for board operations
 
 export const useBoard = () => {
-  const BOARD_SIZE = 5;
   // Initialize the board from level data
   const initializeBoard = useCallback((levelData: LevelData): GameCell[][] => {
     console.log('useBoard: initializeBoard called with levelData:', levelData);
@@ -22,49 +22,52 @@ export const useBoard = () => {
         throw new Error('Level must have at least one king');
       }
       
+      // Use the board size from level data if available, otherwise default to 5
+      const boardSize = levelData.boardSize || 5;
+      
       const board: GameCell[][] = Array.from(
-        { length: BOARD_SIZE },
-        (_, y) =>
-          Array.from({ length: BOARD_SIZE }, (_, x) => ({
+        { length: boardSize },
+        (_, row) =>
+          Array.from({ length: boardSize }, (_, col) => ({
             type: CellType.EMPTY,
-            position: [y, x], // Swap to match the expected [row, col] format
+            position: [row, col],
          }))
       );
 
-      // Place kings
+      // Place kings - Each king is stored as [row, col]
       (levelData.kings || []).forEach((item) => {
         if (item && item.length === 2) {
-          const [kingX, kingY] = item;
-          if (kingX >= 0 && kingX < BOARD_SIZE && kingY >= 0 && kingY < BOARD_SIZE) {
-            board[kingY][kingX].type = CellType.KING;
+          const [kingRow, kingCol] = item;
+          if (kingRow >= 0 && kingRow < boardSize && kingCol >= 0 && kingCol < boardSize) {
+            board[kingRow][kingCol].type = CellType.KING;
           }
         }
       });
 
-      // Place enemies
+      // Place enemies - Each enemy has a {type, position: [row, col]}
       (levelData.enemies || []).forEach((item) => {
         if (item && item.position && item.position.length === 2) {
-          const [enemyX, enemyY] = item.position;
-          if (enemyX >= 0 && enemyX < BOARD_SIZE && enemyY >= 0 && enemyY < BOARD_SIZE) {
-            board[enemyY][enemyX].type = item.type;
+          const [enemyRow, enemyCol] = item.position;
+          if (enemyRow >= 0 && enemyRow < boardSize && enemyCol >= 0 && enemyCol < boardSize) {
+            board[enemyRow][enemyCol].type = item.type;
           }
         }
       });
 
-      // Place boxes
+      // Place boxes - Each box is stored as [row, col]
       (levelData.boxes || []).forEach((item) => {
         if (item && item.length === 2) {
-          const [boxX, boxY] = item;
-          if (boxX >= 0 && boxX < BOARD_SIZE && boxY >= 0 && boxY < BOARD_SIZE) {
-            board[boxY][boxX].type = CellType.BOX;
+          const [boxRow, boxCol] = item;
+          if (boxRow >= 0 && boxRow < boardSize && boxCol >= 0 && boxCol < boardSize) {
+            board[boxRow][boxCol].type = CellType.BOX;
           }
         }
       });
 
-      // Place player
-      const [playerX, playerY] = levelData.playerStart;
-      if (playerX >= 0 && playerX < BOARD_SIZE && playerY >= 0 && playerY < BOARD_SIZE) {
-        board[playerY][playerX].type = CellType.PLAYER;
+      // Place player - stored as [row, col]
+      const [playerRow, playerCol] = levelData.playerStart;
+      if (playerRow >= 0 && playerRow < boardSize && playerCol >= 0 && playerCol < boardSize) {
+        board[playerRow][playerCol].type = CellType.PLAYER;
       } else {
         throw new Error('Player start position is out of board bounds');
       }

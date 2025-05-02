@@ -2,7 +2,6 @@
 import React from 'react';
 import { GameCell } from '../utils/levelData';
 import GamePiece from './GamePiece';
-import { getCellColor } from '../utils/gameLogic';
 
 interface GameBoardProps {
   board: GameCell[][];
@@ -86,7 +85,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             key={`${rowIndex}-${colIndex}`}
             className={`w-full h-full
               game-cell relative 
-              ${getCellColor(rowIndex, colIndex)} 
+              ${(rowIndex + colIndex) % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} 
               ${editorMode ? 'cursor-pointer hover:opacity-75' : ''}
               ${isSelected(rowIndex, colIndex) ? 'ring-2 ring-yellow-400' : ''}
               ${isHintMove(rowIndex, colIndex) ? 'ring-2 ring-green-400' : ''}

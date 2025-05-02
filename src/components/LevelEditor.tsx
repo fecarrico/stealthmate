@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
@@ -193,64 +192,70 @@ const LevelEditor: React.FC = () => {
   }, [boardSize]);
 
   const handleCellClick = (row: number, col: number) => {
-    const newBoard = board.map((rowArray, rowIndex) =>
-      rowArray.map((cell, colIndex) => {
-        if (rowIndex === row && colIndex === col) {
-          let newType = selectedCellType;
-          let updatedBoard = true;
+    const newBoard = [...board];
+    const cell = newBoard[row][col];
+    const cellType = cell.type;
+    
+    // Clear cell first
+    newBoard[row][col] = {
+      ...cell,
+      type: selectedCellType
+    };
 
-          // Handle player placement
-          if (selectedCellType === CellType.PLAYER) {
-            // Clear previous player position
-            if (playerStart[0] !== -1 && playerStart[1] !== -1) {
-              board[playerStart[0]][playerStart[1]].type = CellType.EMPTY;
-            }
-            setPlayerStart([row, col]);
-          } 
-          // Handle king placement
-          else if (selectedCellType === CellType.KING) {
-            const isKingAlready = kings.some(king => king[0] === row && king[1] === col);
-            if (!isKingAlready) {
-              setKings([...kings, [row, col]]);
-            }
-          } 
-          // Handle removing kings
-          else if (cell.type === CellType.KING) {
-            setKings(kings.filter(king => !(king[0] === row && king[1] === col)));
-          }
-          // Handle enemy placement
-          else if (selectedCellType === CellType.ROOK || selectedCellType === CellType.BISHOP || selectedCellType === CellType.QUEEN) {
-            // Add to enemies list
-            setEnemies([...enemies, {
-              type: selectedCellType,
-              position: [row, col]
-            }]);
-          }
-          // Handle removing enemies
-          else if (cell.type === CellType.ROOK || cell.type === CellType.BISHOP || cell.type === CellType.QUEEN) {
-            setEnemies(enemies.filter(enemy => !(enemy.position[0] === row && enemy.position[1] === col)));
-          }
-          // Handle box placement
-          else if (selectedCellType === CellType.BOX) {
-            const isBoxAlready = boxes.some(box => box[0] === row && box[1] === col);
-            if (!isBoxAlready) {
-              setBoxes([...boxes, [row, col]]);
-            }
-          }
-          // Handle removing boxes
-          else if (cell.type === CellType.BOX) {
-            setBoxes(boxes.filter(box => !(box[0] === row && box[1] === col)));
-          }
-          // Handle clearing player
-          else if (selectedCellType === CellType.EMPTY && cell.type === CellType.PLAYER) {
-            setPlayerStart([-1, -1]);
-          }
-
-          return { ...cell, type: newType };
+    // Handle player placement
+    if (selectedCellType === CellType.PLAYER) {
+      // Clear previous player position
+      if (playerStart[0] !== -1 && playerStart[1] !== -1) {
+        const prevRow = playerStart[0];
+        const prevCol = playerStart[1];
+        if (prevRow < newBoard.length && prevCol < newBoard[0].length) {
+          newBoard[prevRow][prevCol].type = CellType.EMPTY;
         }
-        return cell;
-      })
-    );
+      }
+      setPlayerStart([row, col]);
+    } 
+    // Handle removing player
+    else if (cellType === CellType.PLAYER) {
+      setPlayerStart([-1, -1]);
+    }
+    
+    // Handle king placement
+    if (selectedCellType === CellType.KING) {
+      const isKingAlready = kings.some(king => king[0] === row && king[1] === col);
+      if (!isKingAlready) {
+        setKings([...kings, [row, col]]);
+      }
+    } 
+    // Handle removing kings
+    else if (cellType === CellType.KING) {
+      setKings(kings.filter(king => !(king[0] === row && king[1] === col)));
+    }
+    
+    // Handle enemy placement
+    if (selectedCellType === CellType.ROOK || selectedCellType === CellType.BISHOP || selectedCellType === CellType.QUEEN) {
+      // Add to enemies list
+      setEnemies([...enemies, {
+        type: selectedCellType,
+        position: [row, col]
+      }]);
+    }
+    // Handle removing enemies
+    else if (cellType === CellType.ROOK || cellType === CellType.BISHOP || cellType === CellType.QUEEN) {
+      setEnemies(enemies.filter(enemy => !(enemy.position[0] === row && enemy.position[1] === col)));
+    }
+    
+    // Handle box placement
+    if (selectedCellType === CellType.BOX) {
+      const isBoxAlready = boxes.some(box => box[0] === row && box[1] === col);
+      if (!isBoxAlready) {
+        setBoxes([...boxes, [row, col]]);
+      }
+    } 
+    // Handle removing boxes
+    else if (cellType === CellType.BOX) {
+      setBoxes(boxes.filter(box => !(box[0] === row && box[1] === col)));
+    }
+
     setBoard(newBoard);
     setSelectedCell([row, col]);
   };
@@ -275,6 +280,12 @@ const LevelEditor: React.FC = () => {
     
     const levelData = generateLevelData();
     if (levelData) {
+      // Save the level if it has an ID (we're editing an existing level)
+      if (editingLevelId) {
+        saveCustomLevel(levelData);
+        toast.success("Level saved successfully");
+      }
+      
       localStorage.setItem('testing_level', JSON.stringify(levelData));
       navigate('/game?mode=test');
     } else {
@@ -289,9 +300,6 @@ const LevelEditor: React.FC = () => {
       return null;
     }
     
-    const kingsData: [number, number][] = kings.map(king => [king[0], king[1]]);
-    const boxesData: [number, number][] = boxes.map(box => [box[0], box[1]]);
-    
     // Use existing ID if editing a level
     const timestamp = Date.now();
     const levelData: LevelData = {
@@ -299,24 +307,29 @@ const LevelEditor: React.FC = () => {
       level: editingLevelId ? (editingLevelId % 1000) + 1000 : 1000 + (timestamp % 1000),
       name: levelName,
       playerStart: [playerStart[0], playerStart[1]],
-      kings: kingsData,
-      enemies: enemies,
-      boxes: boxesData,
-      isCustom: true
-    };
-    
-    // Add boardSize property to levelData
-    const finalLevelData = {
-      ...levelData,
+      kings: kings.map(k => [k[0], k[1]]),
+      enemies: enemies.map(e => ({
+        type: e.type,
+        position: [e.position[0], e.position[1]]
+      })),
+      boxes: boxes.map(b => [b[0], b[1]]),
+      isCustom: true,
       boardSize: boardSize
     };
     
-    return finalLevelData as LevelData;
+    return levelData as LevelData;
   };
 
-  const handleBoardSizeChange = (newSize: number[]) => {
-    setBoardSize(newSize[0]);
+  // Add validation for level requirements
+  const hasPlayer = (): boolean => {
+    return playerStart[0] >= 0 && playerStart[1] >= 0;
   };
+  
+  const hasKing = (): boolean => {
+    return kings.length > 0;
+  };
+  
+  const canSaveLevel = hasPlayer() && hasKing();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4">
@@ -346,6 +359,10 @@ const LevelEditor: React.FC = () => {
       </div>
     </div>
   );
+
+  function handleBoardSizeChange(newSize: number[]) {
+    setBoardSize(newSize[0]);
+  }
 };
 
 export default LevelEditor;
