@@ -1,4 +1,3 @@
-
 import { LevelData, CellType } from '../utils/levelData';
 
 const level4: LevelData = {
