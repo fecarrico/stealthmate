@@ -2,24 +2,25 @@
 import { LevelData, CellType } from '../utils/levelData';
 
 const level4: LevelData = {
-  id: 4,
+   id: 4,
   level: 4,
-  name: 'Level 4',
-  board: [
-    [0, 0, 0, 0, 0],
-    [0, 1, 0, 2, 0],
-    [0, 0, 3, 0, 0],
-    [0, 4, 0, 0, 0],
-    [0, 0, 0, 0, 0],
+  name: "The cross",
+  playerStart: [14, 7],
+  kings: [
+    [0, 0],
+    [14, 0]
   ],
-  playerStart: [1, 1] as [number, number],
   enemies: [
-    { type: CellType.QUEEN, position: [4, 0] as [number, number] },
+    { type: CellType.QUEEN, position: [0, 7] },
+    { type: CellType.QUEEN, position: [7, 0] },
+    { type: CellType.QUEEN, position: [7, 14] }
   ],
   boxes: [
-    [3, 3],
-    [2, 3],
-  ] as [number, number][],
+    [11, 6], [11, 7], [11, 8],
+    [12, 7],
+    [13, 6], [13, 7], [13, 8]
+  ],
+  board: Array(15).fill(null).map(() => Array(15).fill(0))
 };
 
 export default level4;
