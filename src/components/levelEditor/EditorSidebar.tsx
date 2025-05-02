@@ -15,6 +15,7 @@ interface EditorSidebarProps {
   selectedCellType: CellType;
   setSelectedCellType: (type: CellType) => void;
   generateLevelData: () => LevelData | null;
+  isEditMode?: boolean;
 }
 
 const EditorSidebar: React.FC<EditorSidebarProps> = ({
@@ -24,7 +25,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
   handleBoardSizeChange,
   selectedCellType,
   setSelectedCellType,
-  generateLevelData
+  generateLevelData,
+  isEditMode
 }) => {
   return (
     <div className="space-y-6">

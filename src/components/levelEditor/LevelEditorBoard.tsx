@@ -1,3 +1,4 @@
+
 import React from 'react';
 import GamePiece from '../GamePiece';
 import { GameCell } from '@/utils/levelData';
@@ -27,7 +28,7 @@ const LevelEditorBoard: React.FC<LevelEditorBoardProps> = ({
       <EditorHeader 
         testButtonText={isEditMode ? "Test & Save" : "Test & Save"}
         handleTestLevel={handleTestLevel}
-        canSaveLevel={canSaveLevel} 
+        canSave={canSaveLevel} 
       />
       <div className="relative aspect-square w-full bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
         {/* Level Grid */}

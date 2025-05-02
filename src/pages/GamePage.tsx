@@ -39,7 +39,6 @@ const GamePage: React.FC = () => {
     canUndo,
     canRedo,
     ninjaInstinctAvailable,
-    setNinjaInstinctAvailable,
     isGameOver,
     isVictory,
     initializeGame,
@@ -103,7 +102,10 @@ const GamePage: React.FC = () => {
   }, [levelId, mode, initializeGame]);
   
   const handleMove = (direction: number[]) => {
-    movePlayer(direction);
+    // Ensure we're passing a direction array to movePlayer
+    if (direction && direction.length === 2) {
+      movePlayer(direction);
+    }
   };
   
   const handleKeyDown = (e: KeyboardEvent) => {

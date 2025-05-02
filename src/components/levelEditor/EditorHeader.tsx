@@ -8,9 +8,14 @@ import { toast } from '@/components/ui/sonner';
 interface EditorHeaderProps {
   handleTestLevel: () => void;
   canSave: boolean;
+  testButtonText?: string;
 }
 
-const EditorHeader: React.FC<EditorHeaderProps> = ({ handleTestLevel, canSave }) => {
+const EditorHeader: React.FC<EditorHeaderProps> = ({ 
+  handleTestLevel, 
+  canSave,
+  testButtonText = "Test & Save"
+}) => {
   const navigate = useNavigate();
   
   const handleTestClick = () => {
@@ -41,7 +46,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({ handleTestLevel, canSave })
           className={`bg-green-600 hover:bg-green-700 text-zinc-950 font-medium ${!canSave ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Play className="mr-1 h-4 w-4" />
-          Test & Save
+          {testButtonText}
         </Button>
       </div>
     </div>
