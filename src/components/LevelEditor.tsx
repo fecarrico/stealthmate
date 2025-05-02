@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
@@ -319,17 +320,6 @@ const LevelEditor: React.FC = () => {
     
     return levelData as LevelData;
   };
-
-  // Add validation for level requirements
-  const hasPlayer = (): boolean => {
-    return playerStart[0] >= 0 && playerStart[1] >= 0;
-  };
-  
-  const hasKing = (): boolean => {
-    return kings.length > 0;
-  };
-  
-  const canSaveLevel = hasPlayer() && hasKing();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4">
