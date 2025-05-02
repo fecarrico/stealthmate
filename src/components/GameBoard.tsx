@@ -12,6 +12,8 @@ interface GameBoardProps {
   selectedCell?: [number, number] | null;
   showSightLines?: boolean;
   playerPosition?: [number, number];
+  playerDetected?: boolean;
+  detectingEnemies?: [number, number][];
   currentHintMove?: number[] | null;
 }
 
@@ -23,6 +25,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   selectedCell,
   showSightLines = false,
   playerPosition,
+  playerDetected = false,
+  detectingEnemies = [],
   currentHintMove
 }) => {
   // Safely handle the case when board is undefined or empty
@@ -54,6 +58,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
            currentHintMove[0] === row && 
            currentHintMove[1] === col;
   };
+  
+  // Check if the cell contains an enemy that detected the player
+  const isDetectingEnemy = (row: number, col: number): boolean => {
+    return detectingEnemies.some(([r, c]) => r === row && c === col);
+  };
 
   // If we have rows but no columns, return a message
   if (cols === 0) {
@@ -81,14 +90,20 @@ const GameBoard: React.FC<GameBoardProps> = ({
               ${editorMode ? 'cursor-pointer hover:opacity-75' : ''}
               ${isSelected(rowIndex, colIndex) ? 'ring-2 ring-yellow-400' : ''}
               ${isHintMove(rowIndex, colIndex) ? 'ring-2 ring-green-400' : ''}
+              ${isDetectingEnemy(rowIndex, colIndex) ? 'bg-red-800' : ''}
             `}
             onClick={editorMode && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
             data-position={`${rowIndex},${colIndex}`}
           >
-            {isInSightLine(rowIndex, colIndex) && !editorMode && showSightLines && (
-              <div className="sight-line absolute inset-0 bg-red-500/20" />
+            {isInSightLine(rowIndex, colIndex) && !editorMode && (showSightLines || (playerDetected && isDetectingEnemy(rowIndex, colIndex))) && (
+              <div className="sight-line absolute inset-0 bg-red-500/40" />
             )}
-            {cell.type !== 'empty' && <GamePiece type={cell.type} />}
+            {cell.type !== 'empty' && (
+              <GamePiece 
+                type={cell.type} 
+                isDetected={playerDetected && cell.type === 'player'}
+              />
+            )}
           </div>
         ))
       )}

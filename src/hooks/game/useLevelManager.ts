@@ -21,11 +21,9 @@ export const useLevelManager = () => {
   
   // Load level
   const loadLevel = useCallback((
-    levelNumber: number,
-    setGameState: (gameState: GameState) => void
+    levelNumber: number
   ) => {
-    
-      
+    try {
       const levelData = levelsData[levelNumber - 1];
       
       if (!levelData) {
@@ -34,104 +32,89 @@ export const useLevelManager = () => {
         return null;
       }
 
-      try {
-          const board = initializeBoard(levelData);
-          if (!board) {
-            console.error('Failed to initialize board for level', levelNumber);
-            return null;
-          }
-          
-          const sightLines = calculateAllSightLines(board);
-        const gameState: GameState = {
-          level: levelNumber,
-          board,
-          playerPosition: [...levelData.playerStart] as [number, number],
-          steps: 0,
-          sightLines,
-          gameOver: false,
-          victory: false,
-          message: "",
-          ninjaInstinct: 1,
-          levelName: levelData.name || `Level ${levelNumber}`,
-          history:[
-            {
-              board: JSON.parse(JSON.stringify(board)),
-              playerPosition: [...levelData.playerStart] as [number, number],
-              steps: 0
-            }
-          ],
-        };
-
-        if (setGameState) {
-          setGameState(gameState);
-        }
-          
-      } catch (error) {
-        console.error(`Error loading level ${levelNumber}:`, error);
-      }
-    },
-    [initializeBoard, calculateAllSightLines, levelsData]
-  );
-   const loadInitialLevel = useCallback((levelNumber: number, setGameState: (gameState: GameState) => void) => {
-        loadLevel(levelNumber, setGameState);
-      }, [loadLevel]);
-
-
-      } catch (error) {
-        console.error(`Error loading level ${levelNumber}:`, error);
+      const board = initializeBoard(levelData);
+      if (!board) {
+        console.error('Failed to initialize board for level', levelNumber);
         return null;
       }
-    },
-    [initializeBoard, calculateAllSightLines, levelsData]
-  );
+      
+      const sightLines = calculateAllSightLines(board);
+      const gameState: GameState = {
+        level: levelNumber,
+        board,
+        playerPosition: [...levelData.playerStart] as [number, number],
+        steps: 0,
+        sightLines,
+        gameOver: false,
+        victory: false,
+        message: "",
+        ninjaInstinct: 3,
+        levelName: levelData.name || `Level ${levelNumber}`,
+        history:[
+          {
+            board: JSON.parse(JSON.stringify(board)),
+            playerPosition: [...levelData.playerStart] as [number, number],
+            steps: 0
+          }
+        ],
+      };
+      
+      return gameState;
+    } catch (error) {
+      console.error(`Error loading level ${levelNumber}:`, error);
+      return null;
+    }
+  }, [initializeBoard, calculateAllSightLines, levelsData]);
 
-  const loadCustomLevel = useCallback((
-    levelData: LevelData,
+  const loadInitialLevel = useCallback((
+    levelNumber: number, 
     setGameState: (gameState: GameState) => void
   ) => {
+    const gameState = loadLevel(levelNumber);
+    if (gameState && setGameState) {
+      setGameState(gameState);
+    }
+  }, [loadLevel]);
+
+  const loadCustomLevel = useCallback((
+    levelData: LevelData
+  ) => {
     try {
-    (levelData: LevelData, setGameState: (gameState: GameState) => void) => {
-      try {
-        
-        
-        const board = initializeBoard(levelData);
-        if (!board) {
-          console.error('Failed to initialize board for custom level');
-          return null;
-        }
-        
-        const sightLines = calculateAllSightLines(board);
+      const board = initializeBoard(levelData);
+      if (!board) {
+        console.error('Failed to initialize board for custom level');
+        return null;
+      }
+      
+      const sightLines = calculateAllSightLines(board);
 
-        const gameState: GameState = {
-          level: levelData.level || levelData.id || 0,
-          board,
-          playerPosition: [...levelData.playerStart] as [number, number],
-          steps: 0,
-          sightLines,
-          gameOver: false,
-          victory: false,
-          message: '',
-          ninjaInstinct: 3,
-          levelName: levelData.name || "Custom Level",
-          isCustomLevel: true,
-          history: [
-            {
-              board: JSON.parse(JSON.stringify(board)),
-              playerPosition: [...levelData.playerStart] as [number, number],
-              steps: 0
-            }
-          ]
-        };
+      const gameState: GameState = {
+        level: levelData.level || levelData.id || 0,
+        board,
+        playerPosition: [...levelData.playerStart] as [number, number],
+        steps: 0,
+        sightLines,
+        gameOver: false,
+        victory: false,
+        message: '',
+        ninjaInstinct: 3,
+        levelName: levelData.name || "Custom Level",
+        isCustomLevel: true,
+        history: [
+          {
+            board: JSON.parse(JSON.stringify(board)),
+            playerPosition: [...levelData.playerStart] as [number, number],
+            steps: 0
+          }
+        ]
+      };
 
-        if (setGameState) {
-          setGameState(gameState);
-        }
-      } catch (error) {
-        console.error('Error loading custom level:', error);
-      }   
-    },
-    [initializeBoard, calculateAllSightLines]
-  );
+      return gameState;
+    } catch (error) {
+      console.error('Error loading custom level:', error);
+      return null;
+    }
+  }, [initializeBoard, calculateAllSightLines]);
 
   // Set level complete
   const setLevelCompleted = useCallback((isComplete: boolean) => {

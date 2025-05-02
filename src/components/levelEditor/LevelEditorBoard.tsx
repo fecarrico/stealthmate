@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AuthorFooter from '@/components/AuthorFooter';
 import { GameCell } from '@/utils/levelData';
 import GameBoard from '../GameBoard';
 import EditorHeader from './EditorHeader';

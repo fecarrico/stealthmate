@@ -1,9 +1,11 @@
+
 import React from 'react';
 import LevelSelector from '@/components/LevelSelector';
 import { LevelData } from '@/utils/levelData';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
 
 interface LevelSelectScreenProps {
   levels: LevelData[];
@@ -14,8 +16,6 @@ interface LevelSelectScreenProps {
   handleLoadCode: () => void;
 }
 
-
-
 const LevelSelectScreen: React.FC<LevelSelectScreenProps> = ({
   levels,
   bestScores,
@@ -24,19 +24,29 @@ const LevelSelectScreen: React.FC<LevelSelectScreenProps> = ({
   setLevelCode,
   handleLoadCode,
 }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  
   const handleLevelSelect = (levelId: number) => {
     navigate(`/game?levelId=${levelId}`);
   };
+  
+  const handleEditCustomLevel = (level: LevelData) => {
+    // Store the level data in localStorage
+    localStorage.setItem('testing_level', JSON.stringify(level));
+    // Navigate to editor
+    navigate('/editor');
+  };
+  
   return (
     <div className="flex flex-col items-center">
       <LevelSelector
         levels={levels}
         bestScores={bestScores}
         handleSelectLevel={handleLevelSelect}
+        onEditCustomLevel={handleEditCustomLevel}
       />
-      <div className="mt-4 ">
-        <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800 flex flex-col gap-4" >
+      <div className="mt-4">
+        <div className="bg-zinc-900 p-4 rounded-lg shadow-lg border border-zinc-800 flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Input
               placeholder="Enter level code..."

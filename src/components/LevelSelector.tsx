@@ -1,66 +1,67 @@
 
 import React from 'react';
-import { LevelData } from '../utils/levelData';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { Shield, ChevronLeft } from 'lucide-react';
+import { LevelData } from '@/utils/levelData';
+import { Edit } from 'lucide-react';
 
 interface LevelSelectorProps {
   levels: LevelData[];
-  bestScores: { [key: number]: number };
+  bestScores: Record<number, number>;
   handleSelectLevel: (levelId: number) => void;
+  onEditCustomLevel?: (level: LevelData) => void;
 }
 
-const LevelSelector: React.FC<LevelSelectorProps> = ({ levels, bestScores, handleSelectLevel }) => {
-  const navigate = useNavigate();
-  
+const LevelSelector: React.FC<LevelSelectorProps> = ({
+  levels,
+  bestScores,
+  handleSelectLevel,
+  onEditCustomLevel,
+}) => {
+  const renderLevelButton = (level: LevelData) => {
+    const isCustom = level.isCustom;
+    const bestScore = bestScores[level.level];
+    
+    return (
+      <div 
+        key={level.id} 
+        className="relative bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex flex-col items-center gap-2"
+      >
+        <h3 className="text-lg font-medium text-amber-500">{level.name}</h3>
+        {bestScore !== undefined && (
+          <p className="text-sm text-zinc-400">
+            Best: <span className="text-zinc-200">{bestScore}</span> steps
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Button
+            onClick={() => handleSelectLevel(level.level)}
+            className="bg-amber-600 hover:bg-amber-700 text-zinc-950"
+          >
+            Play
+          </Button>
+          
+          {isCustom && onEditCustomLevel && (
+            <Button
+              onClick={() => onEditCustomLevel(level)}
+              variant="outline"
+              className="border-zinc-700 text-zinc-300"
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2 text-zinc-200 border-zinc-700" 
-          onClick={() => navigate('/')}
-        >
-          <ChevronLeft size={16} />
-          Back to Main Menu
-        </Button>
-        
-        <h2 className="text-2xl font-bold text-amber-500 flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Select a Level
-        </h2>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {levels.map((level) => {
-          const bestScore = bestScores?.[level.level] ?? "N/A";
-          
-          return (
-            <Card 
-              key={level.level} 
-              className="bg-zinc-900 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer overflow-hidden"
-              onClick={() => handleSelectLevel(level.level)}
-            >
-              <div className="h-32 bg-zinc-800 relative">
-                {/* Level thumbnail/snapshot would go here */}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent flex items-end p-3">
-                  <div className="bg-amber-600 text-white font-bold px-2 py-1 rounded-sm text-xs">
-                    Level {level.level}
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="text-lg font-bold text-zinc-200">{level.name}</h3>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs text-zinc-400">Best Score:</span>
-                  <span className="text-amber-400 font-bold">{bestScore}</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <h2 className="text-2xl font-bold mb-4 text-amber-500 text-center">
+        Select Level
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {levels.map(renderLevelButton)}
       </div>
     </div>
   );

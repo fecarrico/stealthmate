@@ -5,10 +5,8 @@ import { useLevelManager } from './useLevelManager';
 import { useBoard } from './useBoard';
 import { usePlayerMovement } from './usePlayerMovement';
 import { useGameHistory } from './useGameHistory';
-import { useHintSystem } from './useHintSystem';
 import { LevelData } from '../../utils/levelData';
 import { toast } from '@/components/ui/sonner';
-
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -16,16 +14,10 @@ export const useGameLogic = () => {
   const { loadInitialLevel } = useLevelManager();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [ninjaInstinctAvailable, setNinjaInstinctAvailable] = useState<number>(3);
-  const [showHint, setShowHint] = useState(false);
-  const [hintStep, setHintStep] = useState(0);
-  const [hintMoves, setHintMoves] = useState<number[][]>([]);
-  
-  const ninjaInstinctCost = 1;
   
   const { calculateAllSightLines } = useBoard();
   const { movePlayer: processMove } = usePlayerMovement(calculateAllSightLines);
   const { undoMove: processUndo, redoMove: processRedo, resetLevel: processReset } = useGameHistory(calculateAllSightLines);
-  const { getHint: processGetHint } = useHintSystem();
   const { loadLevel, loadCustomLevel } = useLevelManager();
 
   // Initialize game with a level number or custom level data
@@ -52,9 +44,6 @@ export const useGameLogic = () => {
       setHistory([initialGameState]);
       setCurrentStep(0);
       setNinjaInstinctAvailable(3); // Reset ninja instinct for new level
-      setShowHint(false);
-      setHintStep(0);
-      setHintMoves([]);
       return true;
     } catch (error) {
       console.error("Error initializing game:", error);
@@ -69,6 +58,11 @@ export const useGameLogic = () => {
     const newGameState = processMove(direction, gameState);
     
     if (newGameState !== gameState) {
+      // Decrease ninja instinct if player used it in this move
+      if (newGameState.usedNinjaInstinct) {
+        setNinjaInstinctAvailable(prev => Math.max(0, prev - 1));
+      }
+      
       setGameState(newGameState);
       setHistory([...history.slice(0, currentStep + 1), newGameState]);
       setCurrentStep(currentStep + 1);
@@ -83,9 +77,6 @@ export const useGameLogic = () => {
     setGameState(resetState);
     setHistory([resetState]);
     setCurrentStep(0);
-    setShowHint(false);
-    setHintStep(0);
-    setHintMoves([]);
     setNinjaInstinctAvailable(3); // Reset Ninja Instinct uses on level reset
   }, [gameState, processReset]);
 
@@ -111,20 +102,6 @@ export const useGameLogic = () => {
     loadInitialLevel(1, setGameState);
   }, [loadInitialLevel]);
 
-
-
-  // Get hint for current level
-  const getHint = useCallback(async () => {
-    if (!gameState) return null;
-    
-    const hint = await processGetHint(gameState);
-    if (hint && hint.moves) {
-      setHintMoves(hint.moves);
-      return hint;
-    }
-    return null;
-  }, [gameState, processGetHint]);
-
   // Check if can undo
   const canUndo = currentStep > 0;
   
@@ -145,17 +122,10 @@ export const useGameLogic = () => {
     redoMove,
     canUndo,
     canRedo,
-    getHint,
-    ninjaInstinctCost,
     ninjaInstinctAvailable,
     setNinjaInstinctAvailable,
     isGameOver,
     isVictory,
-    showHint,
-    setShowHint,
-    hintStep,
-    setHintStep,
-    hintMoves,
     initializeGame,
   };
 };

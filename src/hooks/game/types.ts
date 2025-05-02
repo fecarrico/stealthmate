@@ -1,39 +1,29 @@
 
-import { CellType } from '../../utils/levelData';
+import { CellType } from "../../utils/levelData";
 
-// Game state interface
 export interface GameState {
   level: number;
-  board: GameCell[][];
+  board: {
+    type: CellType;
+    position: [number, number];
+  }[][];
   playerPosition: [number, number];
   steps: number;
   sightLines: [number, number][];
   gameOver: boolean;
   victory: boolean;
   message: string;
-  ninjaInstinct: number;
+  ninjaInstinct?: number;
   levelName: string;
-  history: GameHistory[];
   isCustomLevel?: boolean;
-}
-
-export enum EnemyType {BISHOP = 'bishop', ROOK='rook', QUEEN='queen', KNIGHT='knight', PAWN='pawn'}
-
-export interface GameCell {
-  type: CellType;
-  position: [number, number];
-}
-
-export interface GameHistory {
-  board: GameCell[][];
-  playerPosition: [number, number];
-  steps: number;
-}
-
-export interface LevelState {
-  levelComplete: boolean;
-  allLevelsComplete: boolean;
-  totalSteps: number[];
-  bestScores: Record<number, number>;
-  showVictory: boolean;
+  history: {
+    board: {
+      type: CellType;
+      position: [number, number];
+    }[][];
+    playerPosition: [number, number];
+    steps: number;
+  }[];
+  usedNinjaInstinct?: boolean;
+  detectingEnemies?: [number, number][];
 }
