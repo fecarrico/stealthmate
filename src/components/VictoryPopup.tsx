@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Save, Edit, ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { LevelData, saveCustomLevel } from '@/utils/levelData';
 import { useGameState } from '@/hooks/useGameState';
+import { useScores } from '@/hooks/game/useScores';
 
 interface VictoryPopupProps {
   level: number;
@@ -28,10 +29,34 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
 }) => {
   const navigate = useNavigate();
   const { getLevels } = useGameState();
+  const { saveBestScore, getBestScoreForLevel } = useScores();
   const levelText = isCustomLevel ? "Custom Level" : `Level ${level}`;
 
   const levels = getLevels();
   const isLastLevel = !isCustomLevel && level >= levels.length;
+  
+  // Save best score
+  useEffect(() => {
+    if (!isCustomLevel && !isTestMode) {
+      saveBestScore(level, steps);
+    }
+  }, [level, steps, isCustomLevel, isTestMode, saveBestScore]);
+
+  // Calculate total best scores
+  const calculateTotalSteps = () => {
+    let total = 0;
+    
+    for (let i = 1; i <= levels.length; i++) {
+      const bestScore = getBestScoreForLevel(i);
+      if (bestScore) {
+        total += bestScore;
+      }
+    }
+    
+    return total;
+  };
+  
+  const totalBestSteps = calculateTotalSteps();
   
   const handleSaveLevel = () => {
     try {
@@ -68,8 +93,11 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
           <div className="text-amber-500 text-6xl mb-4">🎉</div>
           <h2 className="text-3xl font-bold text-amber-500 mb-4">Game Complete!</h2>
           <p className="text-xl text-zinc-300 mb-4">Congratulations!</p>
-          <p className="text-lg text-zinc-400 mb-6">
-            You have completed all levels with a total of {totalSteps} steps.
+          <p className="text-lg text-zinc-400 mb-2">
+            You have completed all levels!
+          </p>
+          <p className="text-md text-amber-400 mb-6 p-3 bg-zinc-800/50 rounded-md">
+            Total Best Score: {totalBestSteps} steps
           </p>
           
           <div className="text-sm text-zinc-500 mb-6 p-4 bg-zinc-800/50 rounded-md">

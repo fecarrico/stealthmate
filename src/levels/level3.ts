@@ -7,7 +7,7 @@ const level3: LevelData = {
   name: "God save me!",
   playerStart: [0, 0],
   kings: [
-    [1, 6],
+    [1, 6], 
     [6, 1]
   ],
   enemies: [
@@ -16,10 +16,10 @@ const level3: LevelData = {
     { type: CellType.QUEEN, position: [6, 6] }
   ],
   boxes: [
-    [0,1], [0,2], [0,3],
-    [1,1],
-    [2,0], [2,1], [2,2], [2,3],
-    [3,0], [3,1], [3,2]
+    [0, 2], [0, 3],
+    [1, 0],
+    [2, 0], [2, 2], [2, 3],
+    [3, 0], [3, 1], 
   ],
   board: [
     [0, 0, 0, 0, 0, 0, 0],

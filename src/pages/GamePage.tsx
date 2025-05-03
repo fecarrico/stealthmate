@@ -105,7 +105,6 @@ const GamePage: React.FC = () => {
   }, [levelId, mode, initializeGame]);
   
   const handleMove = (direction: [number, number]) => {
-    // Ensure we're passing a direction array to movePlayer
     movePlayer(direction);
   };
   
@@ -165,7 +164,12 @@ const GamePage: React.FC = () => {
   }
 
   const handleNinjaInstinct = (show: boolean) => {
-    if (!gameState || ninjaInstinctAvailable <= 0) return;
+    if (!gameState) return;
+    
+    // Only allow using ninja instinct if we have uses left
+    if (show && ninjaInstinctAvailable <= 0) {
+      return;
+    }
     
     setShowSightLines(show);
     

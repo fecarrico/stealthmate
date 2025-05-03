@@ -49,12 +49,18 @@ export const useScores = () => {
     setTotalSteps([]);
   }, []);
 
+  // Calculate total steps from all completed levels
+  const calculateTotalSteps = useCallback(() => {
+    return Object.values(bestScores).reduce((sum, score) => sum + score, 0);
+  }, [bestScores]);
+
   return {
     bestScores,
-    totalSteps,
+    totalSteps: calculateTotalSteps(),
     saveBestScore,
     getBestScoreForLevel,
     addToTotalSteps,
     resetTotalSteps,
+    calculateTotalSteps,
   };
 };
