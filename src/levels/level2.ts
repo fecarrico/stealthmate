@@ -6,7 +6,7 @@ const level2: LevelData = {
   level: 2,
   name: "Werehouse",
   playerStart: [0, 0],
-  kings: [[5, 5]],
+  kings: [[6, 5]],
   enemies: [
     { type: CellType.ROOK, position: [0, 5] },
     { type: CellType.BISHOP, position: [6, 6] }
