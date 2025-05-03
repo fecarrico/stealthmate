@@ -44,24 +44,35 @@ export const usePlayerMovement = (
       const boxNewRow = newRow + rowDelta;
       const boxNewCol = newCol + colDelta;
       
-      // Check if box can be pushed (within board bounds and to an empty cell)
+      // Check if box can be pushed (within board bounds)
       if (
         boxNewRow < 0 ||
         boxNewRow >= newBoard.length ||
         boxNewCol < 0 ||
-        boxNewCol >= newBoard[0].length ||
-        (newBoard[boxNewRow][boxNewCol].type !== CellType.EMPTY &&
-         newBoard[boxNewRow][boxNewCol].type !== CellType.KING)
+        boxNewCol >= newBoard[0].length
       ) {
         return gameState;
       }
-
-      // Move box
-      if (newBoard[boxNewRow][boxNewCol].type === CellType.KING) {
-        // Captured a king
+      
+      const boxTargetCell = newBoard[boxNewRow][boxNewCol];
+      
+      // Check what's in the target cell for the box
+      if (boxTargetCell.type === CellType.EMPTY) {
+        // Move box to empty space
+        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
+      } else if (boxTargetCell.type === CellType.KING) {
+        // Capture a king with the box
+        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
+      } else if (
+        boxTargetCell.type === CellType.ROOK ||
+        boxTargetCell.type === CellType.BISHOP ||
+        boxTargetCell.type === CellType.QUEEN
+      ) {
+        // Capture an enemy with the box
         newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
       } else {
-        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
+        // Can't push box to non-empty cells that aren't kings or enemies
+        return gameState;
       }
     }
 

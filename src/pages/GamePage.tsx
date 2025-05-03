@@ -106,9 +106,7 @@ const GamePage: React.FC = () => {
   
   const handleMove = (direction: [number, number]) => {
     // Ensure we're passing a direction array to movePlayer
-    if (direction && direction.length === 2) {
-      movePlayer(direction);
-    }
+    movePlayer(direction);
   };
   
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -145,7 +143,7 @@ const GamePage: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameState, isLoading, canUndo, canRedo]);
+  }, [gameState, isLoading, canUndo, canRedo, undoMove, redoMove]);
   
   const backToEditor = () => {
     navigate('/editor?editMode=true');

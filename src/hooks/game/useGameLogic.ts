@@ -55,6 +55,7 @@ export const useGameLogic = () => {
   const movePlayer = useCallback((direction: [number, number]) => {
     if (!gameState) return;
 
+    // Check if we need to apply ninja instinct
     const updatedGameState = {
       ...gameState,
       showingNinjaInstinct: gameState.showSightLines
@@ -89,19 +90,23 @@ export const useGameLogic = () => {
   const undoMove = useCallback(() => {
     if (!gameState || currentStep <= 0) return;
     
-    const prevGameState = processUndo(gameState);
+    const prevStep = currentStep - 1;
+    const prevGameState = history[prevStep];
+    
     setGameState(prevGameState);
-    setCurrentStep(currentStep - 1);
-  }, [gameState, currentStep, processUndo]);
+    setCurrentStep(prevStep);
+  }, [gameState, currentStep, history]);
 
   // Redo move
   const redoMove = useCallback(() => {
     if (!gameState || currentStep >= history.length - 1) return;
     
-    const nextGameState = processRedo(gameState, currentStep, history);
+    const nextStep = currentStep + 1;
+    const nextGameState = history[nextStep];
+    
     setGameState(nextGameState);
-    setCurrentStep(currentStep + 1);
-  }, [gameState, history, currentStep, processRedo]);
+    setCurrentStep(nextStep);
+  }, [gameState, history, currentStep]);
 
   useEffect(() => {
     loadInitialLevel(1, setGameState);
