@@ -11,12 +11,14 @@ interface GameAreaProps {
   gameState: GameState;
   showSightLines: boolean;
   setShowSightLines: (show: boolean) => void;
+  ninjaInstinctAvailable: number;
 }
 
 const GameArea: React.FC<GameAreaProps> = ({
   gameState,
   showSightLines,
   setShowSightLines,
+  ninjaInstinctAvailable,
 }) => {
   return (
     <div className="w-full max-w-2xl">
@@ -25,16 +27,16 @@ const GameArea: React.FC<GameAreaProps> = ({
           {/* Ninja Instinct Button */}
           <div className="mb-4 flex justify-center">
             <Button
-              className="bg-purple-700 hover:bg-purple-800 text-zinc-100 flex items-center gap-2 py-2 px-4"
-              onMouseDown={() => setShowSightLines(gameState.ninjaInstinct > 0)}
+              className={`${ninjaInstinctAvailable > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-red-700 hover:bg-red-800'} text-zinc-100 flex items-center gap-2 py-2 px-4`}
+              onMouseDown={() => setShowSightLines(true)}
               onMouseUp={() => setShowSightLines(false)}
               onMouseLeave={() => setShowSightLines(false)}
-              disabled={gameState.ninjaInstinct <= 0}
+              disabled={ninjaInstinctAvailable <= 0}
             >
               <Eye className="h-5 w-5" />
               Ninja Instinct
-              <span className="bg-purple-900 text-white text-xs font-bold px-3 py-1 rounded-full">
-                {gameState.ninjaInstinct}
+              <span className={`${ninjaInstinctAvailable > 0 ? 'bg-purple-900' : 'bg-red-900'} text-white text-xs font-bold px-3 py-1 rounded-full`}>
+                {ninjaInstinctAvailable}
               </span>
             </Button>
           </div>

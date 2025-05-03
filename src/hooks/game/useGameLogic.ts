@@ -13,6 +13,7 @@ export const useGameLogic = () => {
   const [history, setHistory] = useState<GameState[]>([]);
   const { loadInitialLevel } = useLevelManager();
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [showSightLines, setShowSightLines] = useState<boolean>(false);
   const [ninjaInstinctAvailable, setNinjaInstinctAvailable] = useState<number>(3);
   
   const { calculateAllSightLines } = useBoard();
@@ -55,25 +56,31 @@ export const useGameLogic = () => {
   const movePlayer = useCallback((direction: [number, number]) => {
     if (!gameState) return;
 
-    // Check if we need to apply ninja instinct
+    // Create updated game state with current sight line visibility
     const updatedGameState = {
       ...gameState,
-      showingNinjaInstinct: gameState.showSightLines
+      showSightLines: showSightLines
     };
     
     const newGameState = processMove(direction, updatedGameState);
     
     if (newGameState !== gameState) {
-      // Decrease ninja instinct if player used it in this move
-      if (newGameState.usedNinjaInstinct) {
-        setNinjaInstinctAvailable(prev => Math.max(0, prev - 1));
+      // Handle ninja instinct usage when moving with sight lines visible
+      if (showSightLines && ninjaInstinctAvailable > 0) {
+        setNinjaInstinctAvailable(prev => prev - 1);
+        
+        // Update the game state with the new ninja instinct count
+        newGameState.ninjaInstinct = ninjaInstinctAvailable - 1;
       }
       
       setGameState(newGameState);
       setHistory([...history.slice(0, currentStep + 1), newGameState]);
       setCurrentStep(currentStep + 1);
+      
+      // Turn off sight lines after moving
+      setShowSightLines(false);
     }
-  }, [gameState, history, currentStep, processMove]);
+  }, [gameState, history, currentStep, processMove, showSightLines, ninjaInstinctAvailable]);
 
   // Reset level
   const resetLevel = useCallback(() => {
@@ -84,6 +91,7 @@ export const useGameLogic = () => {
     setHistory([resetState]);
     setCurrentStep(0);
     setNinjaInstinctAvailable(3); // Reset Ninja Instinct uses on level reset
+    setShowSightLines(false);
   }, [gameState, processReset]);
 
   // Undo move
@@ -107,6 +115,14 @@ export const useGameLogic = () => {
     setGameState(nextGameState);
     setCurrentStep(nextStep);
   }, [gameState, history, currentStep]);
+
+  // Toggle ninja instinct sight lines
+  const toggleSightLines = useCallback((show: boolean) => {
+    // Only allow toggling if we have ninja instinct charges remaining
+    if (ninjaInstinctAvailable > 0 || !show) {
+      setShowSightLines(show);
+    }
+  }, [ninjaInstinctAvailable]);
 
   useEffect(() => {
     loadInitialLevel(1, setGameState);
@@ -133,7 +149,8 @@ export const useGameLogic = () => {
     canUndo,
     canRedo,
     ninjaInstinctAvailable,
-    setNinjaInstinctAvailable,
+    showSightLines,
+    toggleSightLines,
     isGameOver,
     isVictory,
     initializeGame,

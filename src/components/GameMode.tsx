@@ -15,6 +15,7 @@ interface GameModeProps {
   levelComplete: boolean;
   allLevelsComplete: boolean;
   totalSteps: number;
+  ninjaInstinctAvailable: number;
 }
 
 const GameMode: React.FC<GameModeProps> = ({
@@ -27,6 +28,7 @@ const GameMode: React.FC<GameModeProps> = ({
   levelComplete,
   allLevelsComplete,
   totalSteps,
+  ninjaInstinctAvailable,
 }) => {
   return (
     <div className="flex flex-col items-center">
@@ -35,8 +37,8 @@ const GameMode: React.FC<GameModeProps> = ({
         gameState={gameState}
         showSightLines={showSightLines}
         setShowSightLines={setShowSightLines}
+        ninjaInstinctAvailable={ninjaInstinctAvailable}
       />
-      {/* Removed the "Back to level select" button as requested */}
     </div>
   );
 };

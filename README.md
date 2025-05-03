@@ -1,73 +1,111 @@
-# Welcome to your Lovable project
 
-## Project info
+<div align="center">
+  <img src="public/logo.png" alt="StealthMate Logo" width="200" style="margin-bottom: 20px"/>
+  <h1>🕵️‍♂️ StealthMate - A Chess-Based Stealth Puzzle Game</h1>
+  <p>
+    <strong>Capture all kings while avoiding enemy sight lines!</strong>
+  </p>
+</div>
 
-**URL**: https://lovable.dev/projects/1a0c8357-a870-4f53-8e36-a8f4d026e893
+## 🎮 Play Now
 
-## How can I edit this code?
+Visit [StealthMate](https://stealthmate.lovable.dev) to play the game online!
 
-There are several ways of editing your application.
+## 🧩 Game Rules
 
-**Use Lovable**
+StealthMate is a turn-based puzzle game that combines chess movement patterns with stealth mechanics:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1a0c8357-a870-4f53-8e36-a8f4d026e893) and start prompting.
+### 🎯 Goal
+- Guide your ninja character to capture all kings on the board
+- Avoid being spotted by enemy chess pieces
+- Complete levels in as few moves as possible
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🎭 Characters & Pieces
 
-**Use your preferred IDE**
+- **Ninja (You)**: Move one square in any direction (like a chess king)
+- **Enemies**:
+  - **Rook**: Can see in straight lines (horizontally and vertically)
+  - **Bishop**: Can see in diagonal lines
+  - **Queen**: Can see in all directions (combines rook and bishop sight)
+- **Kings**: Your targets. Capture all kings to complete the level.
+- **Boxes**: Can be pushed to block enemy sight lines or capture enemies/kings.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🥷 Ninja Instinct
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+You have a special ability called "Ninja Instinct" that allows you to see enemy sight lines. Use it wisely!
 
-Follow these steps:
+- You have 3 uses per level
+- Press and hold the "Ninja Instinct" button to activate
+- Once all 3 uses are gone, the button turns red and cannot be used again
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 📦 Box Mechanics
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Boxes are your most valuable tools:
 
-# Step 3: Install the necessary dependencies.
-npm i
+- Push boxes by moving into them
+- Use boxes to block enemy sight lines
+- Push boxes into enemies to neutralize them
+- Push boxes into kings to capture them
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### ⚠️ Game Over
 
-**Edit a file directly in GitHub**
+You'll lose if:
+- You move into an enemy's sight line
+- You try to move outside the board
+- You try to push a box into a wall or another box
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 🏆 Level Progression
 
-**Use GitHub Codespaces**
+- You must complete each level to unlock the next one
+- Try to beat each level in the fewest moves possible
+- Your best score for each level is saved
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🛠️ Custom Level Editor
 
-## What technologies are used for this project?
+Create your own StealthMate levels!
 
-This project is built with:
+1. Click "Create New Level" on the level selection screen
+2. Place pieces on the board: your character, kings, enemies, and boxes
+3. Test your level and make adjustments
+4. Save your level to play later
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 🔄 Share Custom Levels
 
-## How can I deploy this project?
+Share your custom levels with friends using level codes:
 
-Simply open [Lovable](https://lovable.dev/projects/1a0c8357-a870-4f53-8e36-a8f4d026e893) and click on Share -> Publish.
+1. After creating a level, click "Generate Level Code"
+2. Copy the code and share it
+3. Others can import your level using the "Enter Level Code" field on the level selection screen
 
-## Can I connect a custom domain to my Lovable project?
+## 🔧 Controls
 
-Yes, you can!
+- **Arrow Keys** or **WASD**: Move your ninja character
+- **Z Key**: Undo last move
+- **R Key**: Reset level
+- **Mouse**: Hold the "Ninja Instinct" button to see enemy sight lines
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🧠 Strategy Tips
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Plan your moves carefully - every step counts!
+- Use boxes strategically to block sight lines and create safe paths
+- Observe enemy vision patterns before moving
+- Sometimes it's better to take a longer route if it's safer
+- Use Ninja Instinct to check if your planned move is safe
+
+## 🙏 Credits
+
+StealthMate was created by [Felipe Carriço](https://www.linkedin.com/in/fecarrico/).
+
+If you enjoy the game, please consider sharing it with friends or providing feedback!
+
+## 🔗 Links
+
+- [Report a Bug](https://github.com/yourusername/stealthmate/issues)
+- [Feature Request](https://github.com/yourusername/stealthmate/issues)
+- [Creator's Portfolio](https://portfolio-website-url)
+
+---
+
+<div align="center">
+  <p>Built with ❤️ using React, TypeScript, and Lovable</p>
+</div>
