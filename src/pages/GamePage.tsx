@@ -15,13 +15,13 @@ import AuthorFooter from '@/components/AuthorFooter';
 import GameTitle from '@/components/GameTitle';
 import GameBoard from '@/components/GameBoard';
 import { useScores } from '@/hooks/game/useScores';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalSteps } = useScores();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   // Extract levelId from query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -41,6 +41,7 @@ const GamePage: React.FC = () => {
     canUndo,
     canRedo,
     ninjaInstinctAvailable,
+    setNinjaInstinctAvailable,
     isGameOver,
     isVictory,
     initializeGame,
@@ -169,6 +170,11 @@ const GamePage: React.FC = () => {
     if (!gameState || ninjaInstinctAvailable <= 0) return;
     
     setShowSightLines(show);
+    
+    // If we're showing the sight lines, we're using ninja instinct
+    if (show) {
+      gameState.showingNinjaInstinct = true;
+    }
   };
   
   return (
@@ -202,7 +208,7 @@ const GamePage: React.FC = () => {
           
           <Button
             variant="outline"
-            className="bg-purple-700 hover:bg-purple-800 text-zinc-100 flex items-center gap-2"
+            className={`${ninjaInstinctAvailable > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-red-700 hover:bg-red-800'} text-zinc-100 flex items-center gap-2`}
             onMouseDown={() => handleNinjaInstinct(true)}
             onMouseUp={() => handleNinjaInstinct(false)}
             onMouseLeave={() => handleNinjaInstinct(false)}

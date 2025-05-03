@@ -26,4 +26,6 @@ export interface GameState {
   }[];
   usedNinjaInstinct?: boolean;
   detectingEnemies?: [number, number][];
+  showSightLines?: boolean;
+  showingNinjaInstinct?: boolean;
 }

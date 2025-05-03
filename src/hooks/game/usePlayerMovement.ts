@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { GameState } from './types';
 import { CellType } from '../../utils/levelData';
@@ -34,7 +35,6 @@ export const usePlayerMovement = (
     let usedNinjaInstinct = false;
     
     // Check if player is using Ninja Instinct
-    // When the player uses their Ninja Instinct to check sight lines but moves anyway
     if (gameState.showingNinjaInstinct) {
       usedNinjaInstinct = true;
     }
