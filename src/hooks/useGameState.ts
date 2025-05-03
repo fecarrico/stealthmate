@@ -11,7 +11,15 @@ import { LevelData } from '../utils/levelData';
 export const useGameState = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const { initializeBoard, calculateAllSightLines } = useBoard();
-  const { bestScores, totalSteps, saveBestScore, addToTotalSteps, resetTotalSteps } = useScores();
+  const { 
+    bestScores, 
+    totalSteps, 
+    saveBestScore, 
+    addToTotalSteps, 
+    resetTotalSteps, 
+    isLevelCompleted,
+    isLevelUnlocked 
+  } = useScores();
   const { 
     levelComplete, 
     allLevelsComplete, 
@@ -120,8 +128,6 @@ export const useGameState = () => {
   }, [resetTotalSteps, setAllLevelsComplete, setVictoryVisible]);
 
   // Close victory popup
-
-  
   const closeVictory = useCallback(() => {
     setVictoryVisible(false);
   }, [setVictoryVisible]);
@@ -141,6 +147,8 @@ export const useGameState = () => {
     getLevels,
     showVictory,
     closeVictory,
-    loadLevel
+    loadLevel,
+    isLevelCompleted,
+    isLevelUnlocked
   };
 };

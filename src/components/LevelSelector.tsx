@@ -2,13 +2,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LevelData } from '@/utils/levelData';
-import { Edit } from 'lucide-react';
+import { Edit, Lock } from 'lucide-react';
 
 interface LevelSelectorProps {
   levels: LevelData[];
   bestScores: Record<number, number>;
   handleSelectLevel: (levelId: number) => void;
   onEditCustomLevel?: (level: LevelData) => void;
+  isLevelUnlocked?: (levelId: number) => boolean;
 }
 
 const LevelSelector: React.FC<LevelSelectorProps> = ({
@@ -16,16 +17,24 @@ const LevelSelector: React.FC<LevelSelectorProps> = ({
   bestScores,
   handleSelectLevel,
   onEditCustomLevel,
+  isLevelUnlocked = () => true, // Default all levels are unlocked if not provided
 }) => {
   const renderLevelButton = (level: LevelData) => {
     const isCustom = level.isCustom;
     const bestScore = bestScores[level.level];
+    const unlocked = isLevelUnlocked(level.level);
     
     return (
       <div 
         key={level.id} 
-        className="relative bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex flex-col items-center gap-2"
+        className={`relative bg-zinc-900 rounded-lg border ${unlocked ? 'border-zinc-800' : 'border-zinc-700 opacity-80'} p-4 flex flex-col items-center gap-2`}
       >
+        {!unlocked && (
+          <div className="absolute top-2 right-2">
+            <Lock className="h-5 w-5 text-zinc-500" />
+          </div>
+        )}
+        
         <h3 className="text-lg font-medium text-amber-500">{level.name}</h3>
         {bestScore !== undefined && (
           <p className="text-sm text-zinc-400">
@@ -34,13 +43,16 @@ const LevelSelector: React.FC<LevelSelectorProps> = ({
         )}
         <div className="flex gap-2">
           <Button
-            onClick={() => handleSelectLevel(level.level)}
-            className="bg-amber-600 hover:bg-amber-700 text-zinc-950"
+            onClick={() => unlocked && handleSelectLevel(level.level)}
+            className={`${unlocked 
+              ? 'bg-amber-600 hover:bg-amber-700 text-zinc-950' 
+              : 'bg-zinc-700 cursor-not-allowed text-zinc-300'}`}
+            disabled={!unlocked}
           >
             Play
           </Button>
           
-          {isCustom && onEditCustomLevel && (
+          {isCustom && onEditCustomLevel && unlocked && (
             <Button
               onClick={() => onEditCustomLevel(level)}
               variant="outline"

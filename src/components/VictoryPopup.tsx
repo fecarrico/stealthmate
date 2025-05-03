@@ -29,7 +29,7 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
 }) => {
   const navigate = useNavigate();
   const { getLevels } = useGameState();
-  const { saveBestScore, getBestScoreForLevel } = useScores();
+  const { saveBestScore, getBestScoreForLevel, calculateTotalSteps } = useScores();
   const levelText = isCustomLevel ? "Custom Level" : `Level ${level}`;
 
   const levels = getLevels();
@@ -41,20 +41,6 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
       saveBestScore(level, steps);
     }
   }, [level, steps, isCustomLevel, isTestMode, saveBestScore]);
-
-  // Calculate total best scores
-  const calculateTotalSteps = () => {
-    let total = 0;
-    
-    for (let i = 1; i <= levels.length; i++) {
-      const bestScore = getBestScoreForLevel(i);
-      if (bestScore) {
-        total += bestScore;
-      }
-    }
-    
-    return total;
-  };
   
   const totalBestSteps = calculateTotalSteps();
   

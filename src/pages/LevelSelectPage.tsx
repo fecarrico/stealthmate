@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { loadLevelFromCode } from '@/utils/levelData';
 import { useGameState } from '@/hooks/useGameState';
-import { Shield, Code, ArrowRight, ChevronLeft, Trash2, Edit } from 'lucide-react';
+import { useScores } from '@/hooks/game/useScores';
+import { Shield, Code, ArrowRight, ChevronLeft, Trash2, Edit, Lock } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,7 +29,8 @@ const LevelSelectPage: React.FC = () => {
   const [levelToDelete, setLevelToDelete] = useState<LevelData | null>(null);
   const navigate = useNavigate();
 
-  const {loadCustomLevel, bestScores, getLevels, loadLevel } = useGameState();
+  const { loadCustomLevel, bestScores, getLevels, loadLevel } = useGameState();
+  const { isLevelUnlocked } = useScores();
 
   useEffect(() => {
     // Load custom levels from localStorage when component mounts
@@ -56,8 +58,13 @@ const LevelSelectPage: React.FC = () => {
   };
 
   const handleLevelSelect = (levelId: number) => {
-    loadLevel(levelId);
-    navigate(`/game?levelId=${levelId}`); 
+    // Only allow selecting if the level is unlocked
+    if (isLevelUnlocked(levelId)) {
+      loadLevel(levelId);
+      navigate(`/game?levelId=${levelId}`);
+    } else {
+      toast.error('Complete the previous level to unlock this one!');
+    }
   };
 
   const handleCustomLevelSelect = (level: LevelData) => {
@@ -131,29 +138,42 @@ const LevelSelectPage: React.FC = () => {
 
         <h3 className="text-xl font-semibold mb-4 text-zinc-200">Official Levels</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-          {levels.map((level) => (
-            <Card 
-              key={level.level} 
-              className="bg-zinc-900 border-zinc-800 hover:border-amber-500 transition-all cursor-pointer overflow-hidden"
-              onClick={() => handleLevelSelect(level.level)}
-            >
-              <div className="h-32 bg-zinc-800 relative">
-                {/* Level preview would go here */}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent flex items-end p-3">
-                  <div className="bg-amber-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
-                    Level {level.level}
+          {levels.map((level) => {
+            const unlocked = isLevelUnlocked(level.level);
+            return (
+              <Card 
+                key={level.level} 
+                className={`${unlocked
+                  ? 'bg-zinc-900 border-zinc-800 hover:border-amber-500'
+                  : 'bg-zinc-900/70 border-zinc-700 opacity-80'} transition-all overflow-hidden ${unlocked ? 'cursor-pointer' : 'cursor-default'}`}
+                onClick={() => unlocked && handleLevelSelect(level.level)}
+              >
+                <div className="h-32 bg-zinc-800 relative">
+                  {!unlocked && (
+                    <div className="absolute top-2 right-2 bg-zinc-900/80 p-2 rounded-full">
+                      <Lock className="h-4 w-4 text-zinc-400" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent flex items-end p-3">
+                    <div className="bg-amber-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
+                      Level {level.level}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="text-lg font-bold text-zinc-200">{level.name}</h3>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs text-zinc-400">Best Score:</span>
-                  <span className="text-amber-400 font-bold">{bestScores[level.level] ?? "N/A"}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="p-4">
+                  <h3 className={`text-lg font-bold ${unlocked ? 'text-zinc-200' : 'text-zinc-400'}`}>
+                    {level.name}
+                  </h3>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-zinc-400">Best Score:</span>
+                    <span className={`${unlocked ? 'text-amber-400' : 'text-zinc-500'} font-bold`}>
+                      {bestScores[level.level] ?? "N/A"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {customLevels.length > 0 && (
@@ -167,7 +187,6 @@ const LevelSelectPage: React.FC = () => {
                   onClick={() => handleCustomLevelSelect(level)}
                 >
                   <div className="h-24 bg-zinc-800 relative">
-                    {/* Custom level preview would go here */}
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent flex items-end p-3">
                       <div className="bg-green-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
                         Custom
@@ -237,7 +256,7 @@ const LevelSelectPage: React.FC = () => {
         </div>
       </div>
       
-      <div className="w-full max-w-6xl mt-8 text-xs text-right text-zinc-500">
+      <div className="w-full max-w-6xl mt-8 text-xs text-center md:text-right text-zinc-500">
         Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
       </div>
 

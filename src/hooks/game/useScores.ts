@@ -1,20 +1,25 @@
-
 import { useState, useCallback, useEffect } from 'react';
 
 // Hook for managing game scores
 export const useScores = () => {
   const [bestScores, setBestScores] = useState<Record<number, number>>({});
   const [totalSteps, setTotalSteps] = useState<number[]>([]);
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
 
-  // Load best scores from localStorage
+  // Load best scores and completed levels from localStorage
   useEffect(() => {
     try {
       const savedScores = localStorage.getItem('stealthmate_best_scores');
       if (savedScores) {
         setBestScores(JSON.parse(savedScores));
       }
+      
+      const savedCompletedLevels = localStorage.getItem('stealthmate_completed_levels');
+      if (savedCompletedLevels) {
+        setCompletedLevels(JSON.parse(savedCompletedLevels));
+      }
     } catch (error) {
-      console.error("Error loading best scores:", error);
+      console.error("Error loading game data:", error);
     }
   }, []);
 
@@ -32,12 +37,37 @@ export const useScores = () => {
         console.error("Error saving best score:", error);
       }
     }
-  }, [bestScores]);
+    
+    // Add level to completed levels if not already completed
+    if (!completedLevels.includes(levelNumber)) {
+      const newCompletedLevels = [...completedLevels, levelNumber];
+      setCompletedLevels(newCompletedLevels);
+      try {
+        localStorage.setItem('stealthmate_completed_levels', JSON.stringify(newCompletedLevels));
+      } catch (error) {
+        console.error("Error saving completed levels:", error);
+      }
+    }
+  }, [bestScores, completedLevels]);
 
   // Get the best score for a level
   const getBestScoreForLevel = useCallback((levelNumber: number): number | undefined => {
     return bestScores[levelNumber];
   }, [bestScores]);
+  
+  // Check if a level is completed
+  const isLevelCompleted = useCallback((levelNumber: number): boolean => {
+    return completedLevels.includes(levelNumber);
+  }, [completedLevels]);
+
+  // Check if a level is unlocked
+  const isLevelUnlocked = useCallback((levelNumber: number): boolean => {
+    // Level 1 is always unlocked
+    if (levelNumber === 1) return true;
+    
+    // Other levels are unlocked if the previous level is completed
+    return isLevelCompleted(levelNumber - 1);
+  }, [isLevelCompleted]);
 
   // Add steps to total steps
   const addToTotalSteps = useCallback((steps: number) => {
@@ -62,5 +92,8 @@ export const useScores = () => {
     addToTotalSteps,
     resetTotalSteps,
     calculateTotalSteps,
+    isLevelCompleted,
+    isLevelUnlocked,
+    completedLevels
   };
 };
