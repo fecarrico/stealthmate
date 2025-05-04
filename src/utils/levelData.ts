@@ -1,3 +1,4 @@
+
 export enum CellType {
   EMPTY = 'empty',
   PLAYER = 'player',
@@ -29,6 +30,7 @@ export interface LevelData {
     kings?: [number, number][];
     enemies: EnemyData[];
     boxes: [number, number][];
+    holes?: [number, number][];
     board?: number[][];
     isCustom?: boolean;
     boardSize?: number;

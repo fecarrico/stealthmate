@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LevelEditorBoard from './levelEditor/LevelEditorBoard';
@@ -17,6 +18,7 @@ const LevelEditor: React.FC = () => {
   const [kings, setKings] = useState<[number, number][]>([]);
   const [enemies, setEnemies] = useState<any[]>([]);
   const [boxes, setBoxes] = useState<[number, number][]>([]);
+  const [holes, setHoles] = useState<[number, number][]>([]); 
   const [editingLevelId, setEditingLevelId] = useState<number | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -87,6 +89,14 @@ const LevelEditor: React.FC = () => {
               levelData.boxes.forEach((box: [number, number]) => {
                 maxRow = Math.max(maxRow, box[0]);
                 maxCol = Math.max(maxCol, box[1]);
+              });
+            }
+            
+            // Check holes positions
+            if (levelData.holes && levelData.holes.length) {
+              levelData.holes.forEach((hole: [number, number]) => {
+                maxRow = Math.max(maxRow, hole[0]);
+                maxCol = Math.max(maxCol, hole[1]);
               });
             }
             
@@ -177,6 +187,19 @@ const LevelEditor: React.FC = () => {
           }
           setBoxes(newBoxes);
           
+          // Set holes
+          const newHoles: [number, number][] = [];
+          if (levelData.holes && levelData.holes.length) {
+            levelData.holes.forEach((hole: [number, number]) => {
+              const [holeRow, holeCol] = hole;
+              if (holeRow < boardSize && holeCol < boardSize) {
+                newBoard[holeRow][holeCol].type = CellType.HOLE;
+                newHoles.push([holeRow, holeCol]);
+              }
+            });
+          }
+          setHoles(newHoles);
+          
         } catch (error) {
           console.error("Error populating board:", error);
         }
@@ -187,6 +210,7 @@ const LevelEditor: React.FC = () => {
       setKings([]);
       setEnemies([]);
       setBoxes([]);
+      setHoles([]);
     }
     
     setBoard(newBoard);
@@ -211,6 +235,7 @@ const LevelEditor: React.FC = () => {
     setKings([]);
     setEnemies([]);
     setBoxes([]);
+    setHoles([]);
   }, [boardSize]);
 
   const handleCellClick = (row: number, col: number) => {
@@ -254,7 +279,11 @@ const LevelEditor: React.FC = () => {
     }
     
     // Handle enemy placement
-    if (selectedCellType === CellType.ROOK || selectedCellType === CellType.BISHOP || selectedCellType === CellType.QUEEN) {
+    if (selectedCellType === CellType.ROOK || 
+        selectedCellType === CellType.BISHOP || 
+        selectedCellType === CellType.QUEEN ||
+        selectedCellType === CellType.KNIGHT ||
+        selectedCellType === CellType.PAWN) {
       // Add to enemies list
       setEnemies([...enemies, {
         type: selectedCellType,
@@ -262,7 +291,11 @@ const LevelEditor: React.FC = () => {
       }]);
     }
     // Handle removing enemies
-    else if (cellType === CellType.ROOK || cellType === CellType.BISHOP || cellType === CellType.QUEEN) {
+    else if (cellType === CellType.ROOK || 
+             cellType === CellType.BISHOP || 
+             cellType === CellType.QUEEN ||
+             cellType === CellType.KNIGHT ||
+             cellType === CellType.PAWN) {
       setEnemies(enemies.filter(enemy => !(enemy.position[0] === row && enemy.position[1] === col)));
     }
     
@@ -276,6 +309,18 @@ const LevelEditor: React.FC = () => {
     // Handle removing boxes
     else if (cellType === CellType.BOX) {
       setBoxes(boxes.filter(box => !(box[0] === row && box[1] === col)));
+    }
+
+    // Handle hole placement
+    if (selectedCellType === CellType.HOLE) {
+      const isHoleAlready = holes.some(hole => hole[0] === row && hole[1] === col);
+      if (!isHoleAlready) {
+        setHoles([...holes, [row, col]]);
+      }
+    } 
+    // Handle removing holes
+    else if (cellType === CellType.HOLE) {
+      setHoles(holes.filter(hole => !(hole[0] === row && hole[1] === col)));
     }
 
     setBoard(newBoard);
@@ -337,6 +382,7 @@ const LevelEditor: React.FC = () => {
         position: [e.position[0], e.position[1]]
       })),
       boxes: boxes.map(b => [b[0], b[1]]),
+      holes: holes.map(h => [h[0], h[1]]),
       isCustom: true,
       boardSize: boardSize
     };
