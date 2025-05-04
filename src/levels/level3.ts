@@ -17,7 +17,7 @@ const level3: LevelData = {
   ],
   boxes: [
     [0, 2], [0, 3], // Top row boxes
-    [1, 0], // Second row, left box
+    [1, 1], // Second row
     [2, 0], [2, 2], [2, 3], // Third row boxes
     [3, 0], [3, 2] // Fourth row boxes
   ],
