@@ -40,15 +40,21 @@ export const useGameMoves = (
           newBoard[currentRow][currentCol].type = CellType.EMPTY;
           newBoard[newRow][newCol].type = CellType.PLAYER;
           
+          // If the box hits a hole, the hole is filled and the box disappears
+          if (targetType === CellType.HOLE) {
+            newBoard[boxNewRow][boxNewCol].type = CellType.EMPTY;
+          }
           // If the box hits a king, it captures it
-          if (targetType === CellType.KING) {
+          else if (targetType === CellType.KING) {
             newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
           } 
           // If the box hits an enemy, it captures it
           else if (
             targetType === CellType.ROOK ||
             targetType === CellType.BISHOP ||
-            targetType === CellType.QUEEN
+            targetType === CellType.QUEEN ||
+            targetType === CellType.KNIGHT ||
+            targetType === CellType.PAWN
           ) {
             newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
           } 

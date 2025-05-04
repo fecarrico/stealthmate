@@ -195,18 +195,21 @@ export const isMoveValid = (
     
     const nextCell = getCellAt(board, [nextRow, nextCol]);
     
+    // Can't push if nextCell is null (outside the board)
+    if (nextCell === null) return false;
+    
+    // Can push box into a hole now (new behavior)
+    if (nextCell.type === CellType.HOLE) return true;
+    
     // Can push if the next cell is empty or contains an enemy or king
-    // But can't push into a hole
     return (
-      nextCell !== null &&
-      nextCell.type !== CellType.HOLE &&
-      (nextCell.type === CellType.EMPTY ||
-       nextCell.type === CellType.ROOK ||
-       nextCell.type === CellType.BISHOP ||
-       nextCell.type === CellType.QUEEN ||
-       nextCell.type === CellType.KNIGHT ||
-       nextCell.type === CellType.PAWN ||
-       nextCell.type === CellType.KING)
+      nextCell.type === CellType.EMPTY ||
+      nextCell.type === CellType.ROOK ||
+      nextCell.type === CellType.BISHOP ||
+      nextCell.type === CellType.QUEEN ||
+      nextCell.type === CellType.KNIGHT ||
+      nextCell.type === CellType.PAWN ||
+      nextCell.type === CellType.KING
     );
   }
   

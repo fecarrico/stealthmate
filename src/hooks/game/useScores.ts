@@ -61,8 +61,10 @@ export const useScores = () => {
           setUnlockedLevels(newUnlockedLevels);
           localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(newUnlockedLevels));
         }
-        
-        // Also mark current level as unlocked permanently (this is the new addition)
+      }
+
+      // Make sure this level is permanently unlocked regardless of completion status
+      if (!unlockedLevels[levelId]) {
         const updatedUnlockedLevels = { ...unlockedLevels, [levelId]: true };
         setUnlockedLevels(updatedUnlockedLevels);
         localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(updatedUnlockedLevels));
@@ -104,6 +106,13 @@ export const useScores = () => {
 
   // Check if a level is unlocked
   const isLevelUnlocked = useCallback((levelId: number): boolean => {
+    // Level 1 is always unlocked
+    if (levelId === 1) return true;
+    
+    // Custom levels are always unlocked
+    if (levelId >= 1000) return true;
+    
+    // A level is unlocked if it exists in unlockedLevels map
     return unlockedLevels[levelId] || false;
   }, [unlockedLevels]);
 
