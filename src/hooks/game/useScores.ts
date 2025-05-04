@@ -61,6 +61,11 @@ export const useScores = () => {
           setUnlockedLevels(newUnlockedLevels);
           localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(newUnlockedLevels));
         }
+        
+        // Also mark current level as unlocked permanently (this is the new addition)
+        const updatedUnlockedLevels = { ...unlockedLevels, [levelId]: true };
+        setUnlockedLevels(updatedUnlockedLevels);
+        localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(updatedUnlockedLevels));
       }
     } catch (error) {
       console.error('Error saving score to localStorage:', error);

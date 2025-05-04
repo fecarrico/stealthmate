@@ -61,7 +61,7 @@ const LevelEditorBoard: React.FC<LevelEditorBoardProps> = ({
                   onClick={() => onCellClick(rowIndex, colIndex)}
                 >
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <GamePiece type={cell.type} />
+                    <GamePiece type={cell.type} isEditorMode={true} />
                   </div>
                   {/* Position indicator (small numbers in corner) */}
                   <div className="absolute bottom-0.5 right-1 text-[8px] opacity-50 font-mono">

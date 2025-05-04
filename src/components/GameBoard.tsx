@@ -107,6 +107,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               <GamePiece 
                 type={cell.type} 
                 isDetected={playerDetected && cell.type === 'player'}
+                isEditorMode={editorMode}
               />
             )}
           </div>

@@ -5,9 +5,10 @@ import { CellType } from '../utils/levelData';
 interface GamePieceProps {
   type: CellType;
   isDetected?: boolean;
+  isEditorMode?: boolean;
 }
 
-const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false }) => {
+const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false, isEditorMode = false }) => {
   const getEmoji = () => {
     switch (type) {
       case CellType.PLAYER:
@@ -27,7 +28,7 @@ const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false }) => {
       case CellType.PAWN:
         return '♙';
       case CellType.HOLE:
-        return 'X';
+        return isEditorMode ? '⊗' : ''; // Show hole as ⊗ in editor mode, nothing in game mode
       default:
         return '';
     }
@@ -37,10 +38,10 @@ const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false }) => {
     return null;
   }
 
-  // For hole type, render a transparent div
-  if (type === CellType.HOLE) {
+  // For hole type, render a transparent div in game mode
+  if (type === CellType.HOLE && !isEditorMode) {
     return (
-      <div className="absolute inset-0 bg-transparent border border-zinc-800/30" />
+      <div className="absolute inset-0 bg-[rgb(9,9,11)] border border-zinc-800/30" />
     );
   }
 
