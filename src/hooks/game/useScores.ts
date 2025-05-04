@@ -87,6 +87,11 @@ export const useScores = () => {
     return Object.values(bestScores).reduce((total, score) => total + score, 0);
   }, [bestScores]);
 
+  // Calculate the total steps from best scores
+  const calculateTotalSteps = useCallback((): number => {
+    return getBestTotalScore();
+  }, [getBestTotalScore]);
+
   // Check if a level is completed
   const isLevelCompleted = useCallback((levelId: number): boolean => {
     return completedLevels[levelId] || false;
@@ -104,6 +109,7 @@ export const useScores = () => {
     addToTotalSteps,
     resetTotalSteps,
     getBestTotalScore,
+    calculateTotalSteps,
     isLevelCompleted,
     isLevelUnlocked
   };
