@@ -22,6 +22,12 @@ const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false }) => {
         return '♕';
       case CellType.BOX:
         return '📦';
+      case CellType.KNIGHT:
+        return '♘';
+      case CellType.PAWN:
+        return '♙';
+      case CellType.HOLE:
+        return 'X';
       default:
         return '';
     }
@@ -29,6 +35,13 @@ const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false }) => {
 
   if (type === CellType.EMPTY) {
     return null;
+  }
+
+  // For hole type, render a transparent div
+  if (type === CellType.HOLE) {
+    return (
+      <div className="absolute inset-0 bg-transparent border border-zinc-800/30" />
+    );
   }
 
   return (

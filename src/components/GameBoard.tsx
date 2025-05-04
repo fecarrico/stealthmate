@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GameCell } from '../utils/levelData';
+import { GameCell, CellType } from '../utils/levelData';
 import GamePiece from './GamePiece';
 
 interface GameBoardProps {
@@ -63,6 +63,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return detectingEnemies.some(([r, c]) => r === row && c === col);
   };
 
+  // Check if the cell is a hole
+  const isHole = (row: number, col: number): boolean => {
+    return board[row][col].type === CellType.HOLE;
+  };
+
   // If we have rows but no columns, return a message
   if (cols === 0) {
     return <div className="game-board empty-board bg-zinc-800 w-full h-full flex items-center justify-center">
@@ -85,7 +90,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             key={`${rowIndex}-${colIndex}`}
             className={`w-full h-full
               game-cell relative 
-              ${(rowIndex + colIndex) % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} 
+              ${isHole(rowIndex, colIndex) ? 'bg-transparent' : 
+                (rowIndex + colIndex) % 2 === 0 ? 'bg-zinc-700' : 'bg-zinc-800'} 
               ${editorMode ? 'cursor-pointer hover:opacity-75' : ''}
               ${isSelected(rowIndex, colIndex) ? 'ring-2 ring-yellow-400' : ''}
               ${isHintMove(rowIndex, colIndex) ? 'ring-2 ring-green-400' : ''}

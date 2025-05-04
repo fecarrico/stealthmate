@@ -110,6 +110,28 @@ export const calculateLineOfSight = (
     }
   }
   
+  // Knight moves in L-shape
+  if (enemyType === CellType.KNIGHT) {
+    const knightMoves = [
+      [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+      [1, -2], [1, 2], [2, -1], [2, 1]
+    ];
+    
+    for (const [dr, dc] of knightMoves) {
+      const pos: [number, number] = [row + dr, col + dc];
+      addPositionIfValid(pos);
+    }
+  }
+  
+  // Pawn can see diagonally forward (assuming pawn always faces up)
+  if (enemyType === CellType.PAWN) {
+    // Diagonal forward-left
+    addPositionIfValid([row - 1, col - 1]);
+    
+    // Diagonal forward-right
+    addPositionIfValid([row - 1, col + 1]);
+  }
+  
   return sightLines;
 };
 
@@ -149,6 +171,9 @@ export const isMoveValid = (
   // Can't move outside the board
   if (!toCell) return false;
   
+  // Can't move to hole cells
+  if (toCell.type === CellType.HOLE) return false;
+  
   // Can move to empty cells
   if (toCell.type === CellType.EMPTY) return true;
   
@@ -171,12 +196,16 @@ export const isMoveValid = (
     const nextCell = getCellAt(board, [nextRow, nextCol]);
     
     // Can push if the next cell is empty or contains an enemy or king
+    // But can't push into a hole
     return (
       nextCell !== null &&
+      nextCell.type !== CellType.HOLE &&
       (nextCell.type === CellType.EMPTY ||
        nextCell.type === CellType.ROOK ||
        nextCell.type === CellType.BISHOP ||
        nextCell.type === CellType.QUEEN ||
+       nextCell.type === CellType.KNIGHT ||
+       nextCell.type === CellType.PAWN ||
        nextCell.type === CellType.KING)
     );
   }

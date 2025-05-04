@@ -25,12 +25,14 @@ const GameArea: React.FC<GameAreaProps> = ({
       <Card className="bg-zinc-900 p-6 rounded-lg shadow-lg border border-zinc-800">
         <div className="w-full mx-auto">
           {/* Ninja Instinct Button */}
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 flex justify-end">
             <Button
               className={`${ninjaInstinctAvailable > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-red-700 hover:bg-red-800'} text-zinc-100 flex items-center gap-2 py-2 px-4`}
-              onMouseDown={() => setShowSightLines(true)}
+              onMouseDown={() => ninjaInstinctAvailable > 0 && setShowSightLines(true)}
               onMouseUp={() => setShowSightLines(false)}
               onMouseLeave={() => setShowSightLines(false)}
+              onTouchStart={() => ninjaInstinctAvailable > 0 && setShowSightLines(true)}
+              onTouchEnd={() => setShowSightLines(false)}
               disabled={ninjaInstinctAvailable <= 0}
             >
               <Eye className="h-5 w-5" />

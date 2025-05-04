@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CellType } from '@/utils/levelData';
-import { Shield, Box } from 'lucide-react';
+import { Shield, Box, Square, Horse, Circle } from 'lucide-react';
 
 interface CellTypeSelectorProps {
   selectedCellType: CellType;
@@ -29,7 +29,16 @@ const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
             {type === CellType.BOX && (
               <Box className="w-5 h-5 mb-1" />
             )}
-            {type !== CellType.PLAYER && type !== CellType.BOX && (
+            {type === CellType.HOLE && (
+              <Circle className="w-5 h-5 mb-1 text-red-500" />
+            )}
+            {type === CellType.KNIGHT && (
+              <Horse className="w-5 h-5 mb-1" />
+            )}
+            {type === CellType.PAWN && (
+              <Square className="w-5 h-5 mb-1" />
+            )}
+            {![CellType.PLAYER, CellType.BOX, CellType.HOLE, CellType.KNIGHT, CellType.PAWN].includes(type) && (
               <div className="w-5 h-5 mb-1">{
                 type === CellType.KING ? '♔' : 
                 type === CellType.ROOK ? '♖' : 

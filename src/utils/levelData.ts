@@ -1,4 +1,3 @@
-
 export enum CellType {
   EMPTY = 'empty',
   PLAYER = 'player',
@@ -7,6 +6,9 @@ export enum CellType {
   BISHOP = 'bishop',
   QUEEN = 'queen',
   BOX = 'box',
+  HOLE = 'hole',
+  KNIGHT = 'knight',
+  PAWN = 'pawn',
 }
 
 export interface GameCell {

@@ -31,6 +31,7 @@ const GamePage: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSightLines, setShowSightLines] = useState(false);
+  const [ninjaInstinctAvailable, setNinjaInstinctAvailable] = useState(3);
 
   const {
     gameState,
@@ -40,8 +41,6 @@ const GamePage: React.FC = () => {
     redoMove,
     canUndo,
     canRedo,
-    ninjaInstinctAvailable,
-    setNinjaInstinctAvailable,
     isGameOver,
     isVictory,
     initializeGame,
@@ -52,6 +51,7 @@ const GamePage: React.FC = () => {
     console.log('Loading game with mode:', mode, 'levelId:', levelId);
     setIsLoading(true);
     setLoadingError(null);
+    setNinjaInstinctAvailable(3); // Reset ninja instinct when loading a new level
     
     const loadGame = async () => {
       try {
@@ -164,18 +164,16 @@ const GamePage: React.FC = () => {
   }
 
   const handleNinjaInstinct = (show: boolean) => {
-    if (!gameState) return;
-    
-    // Only allow using ninja instinct if we have uses left
-    if (show && ninjaInstinctAvailable <= 0) {
-      return;
-    }
+    if (show && ninjaInstinctAvailable <= 0) return;
     
     setShowSightLines(show);
     
-    // If we're showing the sight lines, we're using ninja instinct
     if (show) {
-      gameState.showingNinjaInstinct = true;
+      // Only decrease when activating, not when deactivating
+      // We'll update the counter when user releases the button
+    } else if (showSightLines) {
+      // Only decrease the count when the user releases the button and was previously showing
+      setNinjaInstinctAvailable(prev => Math.max(0, prev - 1));
     }
   };
   
