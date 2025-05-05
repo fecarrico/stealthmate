@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import levels from '../../levels/levels';
 
@@ -104,9 +103,23 @@ export const useScores = () => {
     // Custom levels are always unlocked
     if (levelId >= 1000) return true;
     
-    // A level is unlocked if it is in the unlockedLevels map
+    // A level is unlocked if it has been completed
+    if (completedLevels[levelId]) return true;
+    
+    // A level is unlocked if the previous level has been completed
+    if (completedLevels[levelId - 1]) return true;
+    
+    // A level is unlocked if it has a best score recorded
+    // (which means it was completed at some point)
+    if (bestScores[levelId]) return true;
+    
+    // A level is unlocked if the previous level has a best score
+    // (which means the previous level was completed)
+    if (bestScores[levelId - 1]) return true;
+    
+    // Otherwise, check if it's in the unlockedLevels map
     return unlockedLevels[levelId] || false;
-  }, [unlockedLevels]);
+  }, [completedLevels, bestScores, unlockedLevels]);
 
   return {
     bestScores,

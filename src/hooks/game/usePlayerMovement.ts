@@ -3,9 +3,11 @@ import { useCallback } from 'react';
 import { GameState } from './types';
 import { CellType } from '../../utils/levelData';
 
+// Hook for handling player movement
 export const usePlayerMovement = (
   calculateAllSightLines: (board: any[][]) => [number, number][]
 ) => {
+  // Process player movement
   const movePlayer = useCallback((direction: [number, number], gameState: GameState) => {
     if (!gameState || gameState.gameOver || gameState.victory) return gameState;
 
@@ -15,21 +17,14 @@ export const usePlayerMovement = (
     const newCol = currentCol + colDelta;
     
     // Check if move is valid (within board bounds)
-    if (newRow < 0 || newRow >= gameState.board.length || newCol < 0 || newCol >= gameState.board[0].length) {
+    if (!isWithinBoardBounds(newRow, newCol, gameState.board)) {
       return gameState;
     }
 
     const targetCell = gameState.board[newRow][newCol];
     
     // Can't move to cells with enemies or holes
-    if (
-      targetCell.type === CellType.ROOK ||
-      targetCell.type === CellType.BISHOP ||
-      targetCell.type === CellType.QUEEN ||
-      targetCell.type === CellType.KNIGHT ||
-      targetCell.type === CellType.PAWN ||
-      targetCell.type === CellType.HOLE
-    ) {
+    if (isBlockedCell(targetCell.type)) {
       return gameState;
     }
 
@@ -44,44 +39,7 @@ export const usePlayerMovement = (
     
     // Handle box pushing
     if (targetCell.type === CellType.BOX) {
-      const boxNewRow = newRow + rowDelta;
-      const boxNewCol = newCol + colDelta;
-      
-      // Check if box can be pushed (within board bounds)
-      if (
-        boxNewRow < 0 ||
-        boxNewRow >= newBoard.length ||
-        boxNewCol < 0 ||
-        boxNewCol >= newBoard[0].length
-      ) {
-        return gameState;
-      }
-      
-      const boxTargetCell = newBoard[boxNewRow][boxNewCol];
-      
-      // Check what's in the target cell for the box
-      // Can't push a box into a hole
-      if (boxTargetCell.type === CellType.HOLE) {
-        return gameState;
-      }
-      
-      if (boxTargetCell.type === CellType.EMPTY) {
-        // Move box to empty space
-        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
-      } else if (boxTargetCell.type === CellType.KING) {
-        // Capture a king with the box
-        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
-      } else if (
-        boxTargetCell.type === CellType.ROOK ||
-        boxTargetCell.type === CellType.BISHOP ||
-        boxTargetCell.type === CellType.QUEEN ||
-        boxTargetCell.type === CellType.KNIGHT ||
-        boxTargetCell.type === CellType.PAWN
-      ) {
-        // Capture an enemy with the box
-        newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
-      } else {
-        // Can't push box to non-empty cells that aren't kings or enemies
+      if (!processBoxPush(newBoard, [newRow, newCol], [rowDelta, colDelta])) {
         return gameState;
       }
     }
@@ -97,30 +55,8 @@ export const usePlayerMovement = (
     const isDetected = newSightLines.some(([r, c]) => r === newRow && c === newCol);
     
     // Find enemies that can see the player
-    const detectingEnemies: [number, number][] = [];
-    if (isDetected) {
-      newBoard.forEach((row, rowIndex) => {
-        row.forEach((cell, colIndex) => {
-          if (
-            cell.type === CellType.ROOK ||
-            cell.type === CellType.BISHOP ||
-            cell.type === CellType.QUEEN ||
-            cell.type === CellType.KNIGHT ||
-            cell.type === CellType.PAWN
-          ) {
-            const enemySightLines = calculateLineOfSight(
-              newBoard, 
-              cell.type, 
-              [rowIndex, colIndex]
-            );
-            
-            if (enemySightLines.some(([r, c]) => r === newRow && c === newCol)) {
-              detectingEnemies.push([rowIndex, colIndex]);
-            }
-          }
-        });
-      });
-    }
+    const detectingEnemies = isDetected ? 
+      findDetectingEnemies(newBoard, [newRow, newCol], calculateAllSightLines) : [];
 
     // Check for victory (no more kings)
     const victory = !newBoard.some(row => 
@@ -141,92 +77,113 @@ export const usePlayerMovement = (
     };
   }, [calculateAllSightLines]);
 
-  // Helper function to calculate line of sight for a single enemy
+  // Check if position is within board bounds
+  const isWithinBoardBounds = (row: number, col: number, board: any[][]) => {
+    return row >= 0 && row < board.length && col >= 0 && col < board[0].length;
+  };
+
+  // Check if cell type blocks movement
+  const isBlockedCell = (cellType: CellType) => {
+    return [
+      CellType.ROOK,
+      CellType.BISHOP,
+      CellType.QUEEN,
+      CellType.KNIGHT,
+      CellType.PAWN,
+      CellType.HOLE
+    ].includes(cellType);
+  };
+
+  // Process box pushing logic
+  const processBoxPush = (
+    board: any[][], 
+    boxPosition: [number, number], 
+    direction: [number, number]
+  ) => {
+    const [boxRow, boxCol] = boxPosition;
+    const [rowDelta, colDelta] = direction;
+    
+    const targetRow = boxRow + rowDelta;
+    const targetCol = boxCol + colDelta;
+    
+    // Check if target position is valid
+    if (!isWithinBoardBounds(targetRow, targetCol, board)) {
+      return false;
+    }
+    
+    const targetCell = board[targetRow][targetCol];
+    
+    // Handle different target cell types
+    if (targetCell.type === CellType.HOLE) {
+      // Box falls into hole - both disappear (hole becomes empty)
+      board[targetRow][targetCol].type = CellType.EMPTY;
+      return true;
+    } else if (
+      targetCell.type === CellType.EMPTY ||
+      targetCell.type === CellType.KING ||
+      targetCell.type === CellType.ROOK ||
+      targetCell.type === CellType.BISHOP ||
+      targetCell.type === CellType.QUEEN ||
+      targetCell.type === CellType.KNIGHT ||
+      targetCell.type === CellType.PAWN
+    ) {
+      // Move box to target position
+      board[targetRow][targetCol].type = CellType.BOX;
+      return true;
+    }
+    
+    // Can't push box to other cell types
+    return false;
+  };
+
+  // Find enemies that can see the player
+  const findDetectingEnemies = (
+    board: any[][], 
+    playerPosition: [number, number],
+    calculateLineOfSightFn: Function
+  ): [number, number][] => {
+    const detectingEnemies: [number, number][] = [];
+    const [playerRow, playerCol] = playerPosition;
+    
+    board.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (isEnemyCell(cell.type)) {
+          const enemySightLines = calculateLineOfSight(
+            board, 
+            cell.type, 
+            [rowIndex, colIndex],
+            calculateLineOfSightFn
+          );
+          
+          if (enemySightLines.some(([r, c]) => r === playerRow && c === playerCol)) {
+            detectingEnemies.push([rowIndex, colIndex]);
+          }
+        }
+      });
+    });
+    
+    return detectingEnemies;
+  };
+
+  // Check if cell type is an enemy
+  const isEnemyCell = (cellType: CellType) => {
+    return [
+      CellType.ROOK,
+      CellType.BISHOP,
+      CellType.QUEEN,
+      CellType.KNIGHT,
+      CellType.PAWN
+    ].includes(cellType);
+  };
+
+  // Calculate line of sight for a single enemy
   const calculateLineOfSight = (
     board: any[][],
     enemyType: CellType,
-    position: [number, number]
+    position: [number, number],
+    calculateLineOfSightFn: Function
   ): [number, number][] => {
-    const sightLines: [number, number][] = [];
-    const [row, col] = position;
-    const boardSize: [number, number] = [board.length, board[0].length];
-    
-    const addPositionIfValid = (pos: [number, number]) => {
-      if (pos[0] >= 0 && pos[0] < boardSize[0] && pos[1] >= 0 && pos[1] < boardSize[1]) {
-        const cell = board[pos[0]][pos[1]];
-        // Holes don't block sight lines, boxes and kings do
-        if (cell && cell.type !== CellType.BOX && cell.type !== CellType.KING) {
-          sightLines.push(pos);
-          return true;
-        }
-        return false;
-      }
-      return false;
-    };
-    
-    // Rook can see in straight lines
-    if (enemyType === CellType.ROOK || enemyType === CellType.QUEEN) {
-      // Look up
-      for (let r = row - 1; r >= 0; r--) {
-        if (!addPositionIfValid([r, col])) break;
-      }
-      // Look down
-      for (let r = row + 1; r < boardSize[0]; r++) {
-        if (!addPositionIfValid([r, col])) break;
-      }
-      // Look left
-      for (let c = col - 1; c >= 0; c--) {
-        if (!addPositionIfValid([row, c])) break;
-      }
-      // Look right
-      for (let c = col + 1; c < boardSize[1]; c++) {
-        if (!addPositionIfValid([row, c])) break;
-      }
-    }
-    
-    // Bishop can see diagonally
-    if (enemyType === CellType.BISHOP || enemyType === CellType.QUEEN) {
-      // Top-left diagonal
-      for (let r = row - 1, c = col - 1; r >= 0 && c >= 0; r--, c--) {
-        if (!addPositionIfValid([r, c])) break;
-      }
-      // Top-right diagonal
-      for (let r = row - 1, c = col + 1; r >= 0 && c < boardSize[1]; r--, c++) {
-        if (!addPositionIfValid([r, c])) break;
-      }
-      // Bottom-left diagonal
-      for (let r = row + 1, c = col - 1; r < boardSize[0] && c >= 0; r++, c--) {
-        if (!addPositionIfValid([r, c])) break;
-      }
-      // Bottom-right diagonal
-      for (let r = row + 1, c = col + 1; r < boardSize[0] && c < boardSize[1]; r++, c++) {
-        if (!addPositionIfValid([r, c])) break;
-      }
-    }
-    
-    // Knight moves in L-shape
-    if (enemyType === CellType.KNIGHT) {
-      const knightMoves = [
-        [-2, -1], [-2, 1], [-1, -2], [-1, 2],
-        [1, -2], [1, 2], [2, -1], [2, 1]
-      ];
-      
-      for (const [dr, dc] of knightMoves) {
-        const pos: [number, number] = [row + dr, col + dc];
-        addPositionIfValid(pos);
-      }
-    }
-    
-    // Pawn sees only diagonally forward
-    if (enemyType === CellType.PAWN) {
-      // Diagonal forward-left
-      addPositionIfValid([row - 1, col - 1]);
-      
-      // Diagonal forward-right
-      addPositionIfValid([row - 1, col + 1]);
-    }
-    
-    return sightLines;
+    return calculateLineOfSightFn(board, enemyType, position);
   };
 
   return { movePlayer };

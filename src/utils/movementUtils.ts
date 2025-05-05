@@ -13,9 +13,6 @@ export const isMoveValid = (
   // Can't move outside the board
   if (!toCell) return false;
   
-  // Can't move to hole cells
-  if (toCell.type === CellType.HOLE) return false;
-  
   // Can move to empty cells
   if (toCell.type === CellType.EMPTY) return true;
   
@@ -54,6 +51,9 @@ export const isMoveValid = (
       nextCell.type === CellType.KING
     );
   }
+  
+  // Can move to hole cells (player can't step in holes)
+  if (toCell.type === CellType.HOLE) return false;
   
   // Can't move to cells with enemies
   return false;
