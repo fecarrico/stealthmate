@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { GameState } from './types';
 import { CellType } from '../../utils/levelData';
@@ -43,7 +42,7 @@ export const useGameMoves = (
           // If the box hits a hole, the hole becomes empty and the box disappears
           if (targetType === CellType.HOLE) {
             newBoard[boxNewRow][boxNewCol].type = CellType.EMPTY;
-            // Box "disappears" as it falls into the hole, and hole is filled
+            // Box "disappears" as it falls into the hole, and hole is filled (becomes empty)
           }
           // If the box hits a king, it captures it
           else if (targetType === CellType.KING) {

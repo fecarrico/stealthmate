@@ -54,7 +54,7 @@ export const useScores = () => {
       setCompletedLevels(newCompletedLevels);
       localStorage.setItem('stealthmate_completed_levels', JSON.stringify(newCompletedLevels));
       
-      // Unlock next level - without resetting previous unlocked levels
+      // Unlock next level without affecting previously unlocked levels
       const nextLevelId = levelId + 1;
       if (nextLevelId <= levels.length) {
         const newUnlockedLevels = { ...unlockedLevels, [nextLevelId]: true };
@@ -129,6 +129,10 @@ export const useScores = () => {
     
     // Previous completed level unlocks the next one
     if (completedLevels[levelId - 1]) return true;
+    
+    // If we have a best score for this level (meaning player has won it before),
+    // it should remain unlocked even if the game is reset
+    if (bestScores[levelId]) return true;
     
     // If we have a best score for previous level, next one is unlocked
     if (bestScores[levelId - 1]) return true;

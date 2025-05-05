@@ -113,7 +113,7 @@ export const useGameState = () => {
         history: [initialState],
       });
     } else {
-      // Load the same level again but maintain best score
+      // Load the same level again but maintain best score - don't modify scores
       loadLevel(gameState.level);
     }
     

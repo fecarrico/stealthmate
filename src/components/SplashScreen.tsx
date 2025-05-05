@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Shield, Book, Play, Edit, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -177,7 +176,6 @@ const SplashScreenPage: React.FC = () => {
               className="w-full"
               onClick={() => {
                 toast({
-                  title: "Confirm reset",
                   description: "Are you sure you want to reset all progress and high scores?",
                   action: <Button className="bg-red-600 text-white" onClick={handleResetProgress}>Reset</Button>,
                 });
