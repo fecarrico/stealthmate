@@ -40,7 +40,7 @@ const GameInstructions: React.FC = () => {
         <div className="space-y-2">
           <h3 className="text-xl font-semibold text-zinc-200">Special Mechanics</h3>
           <ul className="list-disc list-inside space-y-1">
-            <li>Push boxes into holes to fill them (box will disappear)</li>
+            <li>Push boxes into holes to fill them and create an empty space (the box disappears)</li>
             <li>Push boxes into enemies or kings to capture them</li>
             <li>Complete each level to unlock the next one</li>
             <li>Use Ninja Instinct wisely - you only have 3 uses per level</li>
