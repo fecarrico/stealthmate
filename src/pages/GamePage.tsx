@@ -44,6 +44,7 @@ const GamePage: React.FC = () => {
     isGameOver,
     isVictory,
     initializeGame,
+    showFinalVictoryPopup, // Obter o novo estado
   } = useGameLogic();
 
   // Load level when levelId changes
@@ -190,7 +191,7 @@ const GamePage: React.FC = () => {
         backToEditor={backToEditor}
       />
       
-      {isVictory && (
+      {(isVictory || showFinalVictoryPopup) && ( // Renderizar popup se for vitória de nível OU vitória final
         <VictoryPopup 
           level={gameState.level}
           steps={gameState.steps}
@@ -199,6 +200,7 @@ const GamePage: React.FC = () => {
           isTestMode={mode === 'test'}
           backToEditor={backToEditor}
           totalSteps={totalSteps}
+          isFinalVictory={showFinalVictoryPopup} // Passar prop para indicar vitória final
         />
       )}
       

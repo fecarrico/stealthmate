@@ -6,7 +6,6 @@ import levels from '../../levels/levels';
 export const useScores = () => {
   const [bestScores, setBestScores] = useState<Record<number, number>>({});
   const [completedLevels, setCompletedLevels] = useState<Record<number, boolean>>({});
-  const [unlockedLevels, setUnlockedLevels] = useState<Record<number, boolean>>({});
   const [totalSteps, setTotalSteps] = useState<number>(0);
 
   // Load scores and completed levels from localStorage when component mounts
@@ -22,17 +21,6 @@ export const useScores = () => {
       const storedCompleted = localStorage.getItem('stealthmate_completed_levels');
       if (storedCompleted) {
         setCompletedLevels(JSON.parse(storedCompleted));
-      }
-      
-      // Load unlocked levels - initialize with correct progression based on completed levels
-      const storedUnlocked = localStorage.getItem('stealthmate_unlocked_levels');
-      
-      if (storedUnlocked) {
-        setUnlockedLevels(JSON.parse(storedUnlocked));
-      } else {
-        // Initialize with level 1 unlocked by default
-        setUnlockedLevels({ 1: true });
-        localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify({ 1: true }));
       }
     } catch (error) {
       console.error('Error loading scores from localStorage:', error);
@@ -54,17 +42,10 @@ export const useScores = () => {
       setCompletedLevels(newCompletedLevels);
       localStorage.setItem('stealthmate_completed_levels', JSON.stringify(newCompletedLevels));
       
-      // Unlock next level without affecting previously unlocked levels
-      const nextLevelId = levelId + 1;
-      if (nextLevelId <= levels.length) {
-        const newUnlockedLevels = { ...unlockedLevels, [nextLevelId]: true };
-        setUnlockedLevels(newUnlockedLevels);
-        localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(newUnlockedLevels));
-      }
     } catch (error) {
       console.error('Error saving score to localStorage:', error);
     }
-  }, [bestScores, completedLevels, unlockedLevels]);
+  }, [bestScores, completedLevels]);
 
   // Reset all scores and progression
   const resetAllProgress = useCallback((): void => {
@@ -76,11 +57,6 @@ export const useScores = () => {
       // Reset completed levels
       setCompletedLevels({});
       localStorage.removeItem('stealthmate_completed_levels');
-      
-      // Reset unlocked levels - only level 1 is unlocked by default
-      const initialUnlocked = { 1: true };
-      setUnlockedLevels(initialUnlocked);
-      localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(initialUnlocked));
       
       // Reset total steps
       setTotalSteps(0);
@@ -121,25 +97,17 @@ export const useScores = () => {
 
   // Check if a level is unlocked
   const isLevelUnlocked = useCallback((levelId: number): boolean => {
-    // Level 1 is always unlocked
-    if (levelId === 1) return true;
-    
-    // Custom levels are always unlocked
-    if (levelId >= 1000) return true;
-    
-    // Previous completed level unlocks the next one
-    if (completedLevels[levelId - 1]) return true;
-    
-    // If we have a best score for this level (meaning player has won it before),
-    // it should remain unlocked even if the game is reset
-    if (bestScores[levelId]) return true;
-    
-    // If we have a best score for previous level, next one is unlocked
-    if (bestScores[levelId - 1]) return true;
-    
-    // Otherwise, check if it's in the unlockedLevels map
-    return unlockedLevels[levelId] || false;
-  }, [completedLevels, bestScores, unlockedLevels]);
+      // Level 1 is always unlocked
+      if (levelId === 1) return true;
+
+      // A level is unlocked if the previous level is completed
+      return completedLevels[levelId - 1] || false;
+  }, [completedLevels]);
+
+  const areAllOfficialLevelsCompleted = useCallback((): boolean => {
+      const lastOfficialLevelId = levels.length;
+      return completedLevels[lastOfficialLevelId] || false;
+  }, [completedLevels, levels]);
 
   return {
     bestScores,
@@ -151,6 +119,7 @@ export const useScores = () => {
     calculateTotalSteps,
     isLevelCompleted,
     isLevelUnlocked,
-    resetAllProgress
+    resetAllProgress,
+    areAllOfficialLevelsCompleted
   };
 };

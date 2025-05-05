@@ -16,6 +16,7 @@ interface VictoryPopupProps {
   isTestMode?: boolean;
   backToEditor?: () => void;
   totalSteps?: number;
+  isFinalVictory?: boolean; // Nova prop
 }
 
 const VictoryPopup: React.FC<VictoryPopupProps> = ({ 
@@ -25,7 +26,8 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
   isCustomLevel,
   isTestMode,
   backToEditor,
-  totalSteps
+  totalSteps,
+  isFinalVictory, // Usar a nova prop
 }) => {
   const navigate = useNavigate();
   const { getLevels } = useGameState();
@@ -37,11 +39,11 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
   
   // Save best score
   useEffect(() => {
-    if (!isCustomLevel && !isTestMode) {
+    if (!isCustomLevel && !isTestMode && !isFinalVictory) { // Não salvar score individual se for vitória final (já foi salvo antes)
       saveBestScore(level, steps);
     }
-  }, [level, steps, isCustomLevel, isTestMode, saveBestScore]);
-  
+  }, [level, steps, isCustomLevel, isTestMode, saveBestScore, isFinalVictory]);
+
   const totalBestSteps = calculateTotalSteps();
   
   const handleSaveLevel = () => {
@@ -71,8 +73,8 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
     navigate(`/game?levelId=${level + 1}`);
   };
 
-  // Show game completion message if it's the last level
-  if (isLastLevel) {
+  // Mostrar popup de vitória final se isFinalVictory for true
+  if (isFinalVictory) {
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-8 max-w-md text-center transform animate-scale-in">
@@ -103,6 +105,7 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
     );
   }
 
+  // Renderizar popup de nível individual se não for vitória final
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-8 max-w-md text-center transform animate-scale-in">

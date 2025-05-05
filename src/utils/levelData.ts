@@ -109,3 +109,12 @@ export const getCustomLevels = (): LevelData[] => {
     return [];
   }
 };
+
+// Function to delete custom levels from local storage
+export const deleteCustomLevels = (): void => {
+  try {
+    localStorage.removeItem('stealthmate_custom_levels');
+  } catch (error) {
+    console.error("Failed to delete custom levels:", error);
+  }
+}; 

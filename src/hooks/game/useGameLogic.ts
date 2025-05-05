@@ -7,6 +7,7 @@ import { usePlayerMovement } from './usePlayerMovement';
 import { useGameHistory } from './useGameHistory';
 import { LevelData } from '../../utils/levelData';
 import { toast } from '@/components/ui/sonner';
+import { useScores } from './useScores'; // Import useScores
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -15,11 +16,13 @@ export const useGameLogic = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [showSightLines, setShowSightLines] = useState<boolean>(false);
   const [ninjaInstinctAvailable, setNinjaInstinctAvailable] = useState<number>(3);
+  const [showFinalVictoryPopup, setShowFinalVictoryPopup] = useState<boolean>(false); // Novo estado para popup final
   
   const { calculateAllSightLines } = useBoard();
   const { movePlayer: processMove } = usePlayerMovement(calculateAllSightLines);
   const { undoMove: processUndo, redoMove: processRedo, resetLevel: processReset } = useGameHistory(calculateAllSightLines);
   const { loadLevel, loadCustomLevel } = useLevelManager();
+  const { saveBestScore, areAllOfficialLevelsCompleted } = useScores(); // Usar useScores
 
   // Initialize game with a level number or custom level data
   const initializeGame = useCallback(async (levelDataOrNumber: number | LevelData, isCustom: boolean = false) => {
@@ -45,6 +48,7 @@ export const useGameLogic = () => {
       setHistory([initialGameState]);
       setCurrentStep(0);
       setNinjaInstinctAvailable(3); // Reset ninja instinct for new level
+      setShowFinalVictoryPopup(false); // Esconder popup final ao carregar novo nível
       return true;
     } catch (error) {
       console.error("Error initializing game:", error);
@@ -92,6 +96,7 @@ export const useGameLogic = () => {
     setCurrentStep(0);
     setNinjaInstinctAvailable(3); // Reset Ninja Instinct uses on level reset
     setShowSightLines(false);
+    setShowFinalVictoryPopup(false); // Esconder popup final ao resetar nível
   }, [gameState, processReset]);
 
   // Undo move
@@ -128,6 +133,18 @@ export const useGameLogic = () => {
     loadInitialLevel(1, setGameState);
   }, [loadInitialLevel]);
 
+  // Efeito para verificar a vitória do nível e a vitória final
+  useEffect(() => {
+    if (gameState?.victory && !gameState.isCustomLevel) {
+      // Nível oficial vencido
+      saveBestScore(gameState.level, gameState.steps);
+
+      // Verificar se todos os níveis oficiais foram completados
+      if (areAllOfficialLevelsCompleted()) {
+        setShowFinalVictoryPopup(true);
+      }
+    }
+  }, [gameState, saveBestScore, areAllOfficialLevelsCompleted]);
   // Check if can undo
   const canUndo = currentStep > 0;
   
@@ -154,5 +171,6 @@ export const useGameLogic = () => {
     isGameOver,
     isVictory,
     initializeGame,
+    showFinalVictoryPopup, // Exportar novo estado
   };
 };

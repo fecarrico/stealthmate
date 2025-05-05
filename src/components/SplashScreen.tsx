@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGameState } from '@/hooks/useGameState';
-import { toast } from '@/components/ui/sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,27 +12,36 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
 const SplashScreenPage: React.FC = () => {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const { resetAllProgress } = useGameState();
-  
+  const [showResetAllConfirmation, setShowResetAllConfirmation] = useState(false);
+  const [showResetCustomConfirmation, setShowResetCustomConfirmation] = useState(false);
+
+  const { resetAllProgress, resetCustomLevels } = useGameState();
+
   const handleResetProgress = () => {
     resetAllProgress();
+    setShowResetAllConfirmation(false);
     setShowSettings(false);
-    toast.success("Progress and high scores have been reset");
   };
-  
+
+  const handleResetCustomLevels = () => {
+    resetCustomLevels();
+    setShowResetCustomConfirmation(false);
+    setShowSettings(false);
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
       <div className="text-3xl md:text-4xl font-bold mb-8 text-amber-500 flex items-center gap-2">
         <Shield className="h-7 w-7 md:h-8 md:w-8" />
         StealthMate
       </div>
-      
+
       <div className="flex flex-col sm:flex-row gap-3 mb-8">
         <Link to="/levels">
           <Button className="game-button w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-zinc-950 font-medium flex items-center gap-2 px-6 py-3">
@@ -47,7 +55,7 @@ const SplashScreenPage: React.FC = () => {
             Create Level
           </Button>
         </Link>
-        <Button 
+        <Button
           className="game-button w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 flex items-center gap-2 px-6 py-3"
           onClick={() => setShowHowToPlay(true)}
         >
@@ -55,7 +63,7 @@ const SplashScreenPage: React.FC = () => {
           How to Play
         </Button>
       </div>
-      
+
       <Button
         variant="outline"
         size="icon"
@@ -64,7 +72,7 @@ const SplashScreenPage: React.FC = () => {
       >
         <Settings className="h-5 w-5" />
       </Button>
-      
+
       {showHowToPlay && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <Card className="max-w-2xl w-full bg-zinc-900 border-zinc-800 my-4">
@@ -73,9 +81,9 @@ const SplashScreenPage: React.FC = () => {
                 <Book className="h-5 w-5" />
                 How to Play
               </CardTitle>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setShowHowToPlay(false)}
                 className="text-zinc-400 hover:text-zinc-100"
               >
@@ -89,16 +97,22 @@ const SplashScreenPage: React.FC = () => {
                   You are a stealthy agent trying to reach and collect all king pieces without being spotted by enemy pieces.
                 </p>
               </div>
-              
+
               <div className="space-y-2">
                 <h3 className="font-bold text-amber-400">Controls</h3>
                 <ul className="list-disc pl-5 text-zinc-300 space-y-1">
-                  <li>Use <span className="bg-zinc-800 px-2 py-1 rounded">Arrow Keys</span> to move your character</li>
-                  <li>Press <span className="bg-zinc-800 px-2 py-1 rounded">Z</span> to undo your last move</li>
-                  <li>Hold the <span className="bg-zinc-800 px-2 py-1 rounded">Ninja Instinct</span> button to see enemy sight lines</li>
+                  <li>
+                    Use <span className="bg-zinc-800 px-2 py-1 rounded">Arrow Keys</span> to move your character
+                  </li>
+                  <li>
+                    Press <span className="bg-zinc-800 px-2 py-1 rounded">Z</span> to undo your last move
+                  </li>
+                  <li>
+                    Hold the <span className="bg-zinc-800 px-2 py-1 rounded">Ninja Instinct</span> button to see enemy sight lines
+                  </li>
                 </ul>
               </div>
-              
+
               <div className="space-y-2">
                 <h3 className="font-bold text-amber-400">Pieces</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -140,7 +154,7 @@ const SplashScreenPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <h3 className="font-bold text-amber-400">Tips</h3>
                 <ul className="list-disc pl-5 text-zinc-300 space-y-1">
@@ -150,9 +164,9 @@ const SplashScreenPage: React.FC = () => {
                   <li>Create your own levels in the level editor</li>
                 </ul>
               </div>
-              
-              <Button 
-                onClick={() => setShowHowToPlay(false)} 
+
+              <Button
+                onClick={() => setShowHowToPlay(false)}
                 className="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-zinc-950 font-medium"
               >
                 Got it!
@@ -161,7 +175,7 @@ const SplashScreenPage: React.FC = () => {
           </Card>
         </div>
       )}
-      
+
       <AlertDialog open={showSettings} onOpenChange={setShowSettings}>
         <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
           <AlertDialogHeader>
@@ -170,19 +184,53 @@ const SplashScreenPage: React.FC = () => {
               You can reset your game progress and high scores here.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4">
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={() => {
-                toast({
-                  description: "Are you sure you want to reset all progress and high scores?",
-                  action: <Button className="bg-red-600 text-white" onClick={handleResetProgress}>Reset</Button>,
-                });
-              }}
-            >
-              Reset All Progress & High Scores
-            </Button>
+          <div className="py-4 space-y-4">
+            <AlertDialog open={showResetAllConfirmation} onOpenChange={setShowResetAllConfirmation}>
+              <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Reset</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to reset all progress and high scores? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700">
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction className="bg-red-600 text-white hover:bg-red-700" onClick={handleResetProgress}>
+                    Reset All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={showResetCustomConfirmation} onOpenChange={setShowResetCustomConfirmation}>
+              <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Reset</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete all custom levels? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700">
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction className="bg-red-600 text-white hover:bg-red-700" onClick={handleResetCustomLevels}>
+                    Reset Custom Levels
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <div className="flex flex-col gap-2">
+              <Button variant="destructive" className="w-full" onClick={() => setShowResetAllConfirmation(true)}>
+                Reset All Progress & High Scores
+              </Button>
+              <Button variant="destructive" className="w-full" onClick={() => setShowResetCustomConfirmation(true)}>
+                Reset Custom Levels
+              </Button>
+            </div>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700">
@@ -191,9 +239,12 @@ const SplashScreenPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       <div className="absolute bottom-4 right-4 text-xs text-zinc-500">
-        Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
+        Created by{' '}
+        <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">
+          Felipe Carriço
+        </a>
       </div>
     </div>
   );

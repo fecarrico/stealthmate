@@ -6,6 +6,7 @@ import { useScores } from './game/useScores';
 import { useLevelManager } from './game/useLevelManager';
 import { useGameMoves } from './game/useGameMoves';
 import { LevelData } from '../utils/levelData';
+import { deleteCustomLevels } from '../utils/levelData';
 
 // Main game state hook that composes all the other hooks
 export const useGameState = () => {
@@ -14,12 +15,12 @@ export const useGameState = () => {
   const { 
     bestScores, 
     totalSteps, 
-    saveBestScore, 
+    saveBestScore,
     addToTotalSteps, 
     resetTotalSteps, 
     isLevelCompleted,
     isLevelUnlocked,
-    resetAllProgress
+    resetAllProgress: resetAllProgressFromScores
   } = useScores();
   const { 
     levelComplete, 
@@ -135,6 +136,18 @@ export const useGameState = () => {
     setVictoryVisible(false);
   }, [setVictoryVisible]);
 
+  const resetCustomLevels = useCallback(() => {
+    deleteCustomLevels();
+  }, []);
+
+  const resetAllProgress = useCallback(() => {
+    resetAllProgressFromScores();
+  }, [resetAllProgressFromScores]);
+
+  
+
+
+
   return {
     gameState,
     movePlayer,
@@ -153,6 +166,7 @@ export const useGameState = () => {
     loadLevel,
     isLevelCompleted,
     isLevelUnlocked,
-    resetAllProgress
+    resetAllProgress,
+    resetCustomLevels
   };
 };
