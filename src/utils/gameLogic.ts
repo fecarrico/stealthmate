@@ -198,7 +198,7 @@ export const isMoveValid = (
     // Can't push if nextCell is null (outside the board)
     if (nextCell === null) return false;
     
-    // Can push box into a hole now (new behavior)
+    // Can push box into a hole now (box will disappear and hole will become empty)
     if (nextCell.type === CellType.HOLE) return true;
     
     // Can push if the next cell is empty or contains an enemy or king

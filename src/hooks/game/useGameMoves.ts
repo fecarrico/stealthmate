@@ -40,9 +40,10 @@ export const useGameMoves = (
           newBoard[currentRow][currentCol].type = CellType.EMPTY;
           newBoard[newRow][newCol].type = CellType.PLAYER;
           
-          // If the box hits a hole, the hole is filled and the box disappears
+          // If the box hits a hole, the hole is filled (becomes empty) and the box disappears
           if (targetType === CellType.HOLE) {
             newBoard[boxNewRow][boxNewCol].type = CellType.EMPTY;
+            // No need to place the box as it disappears
           }
           // If the box hits a king, it captures it
           else if (targetType === CellType.KING) {

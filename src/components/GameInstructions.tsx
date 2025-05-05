@@ -26,11 +26,24 @@ const GameInstructions: React.FC = () => {
           <h3 className="text-xl font-semibold text-zinc-200">Pieces</h3>
           <ul className="list-disc list-inside space-y-1">
             <li><span className="text-emerald-500">🥷</span> Player - You control this piece</li>
-            <li><span className="text-amber-500">♔</span> King - Capture these to win</li>
+            <li><span className="text-amber-500">👑</span> King - Capture these to win</li>
             <li><span className="text-red-500">♖</span> Rook - Sees horizontally and vertically</li>
             <li><span className="text-blue-500">♗</span> Bishop - Sees diagonally</li>
             <li><span className="text-purple-500">♕</span> Queen - Sees in all directions</li>
+            <li><span className="text-cyan-500">♘</span> Knight - Sees in L-shaped patterns</li>
+            <li><span className="text-green-500">♙</span> Pawn - Sees diagonally forward</li>
             <li><span className="text-zinc-400">📦</span> Box - Can be pushed to block sight or capture enemies</li>
+            <li><span className="text-zinc-400">⊗</span> Hole - Cannot be traversed, but pushing a box into it will fill the hole</li>
+          </ul>
+        </div>
+        
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold text-zinc-200">Special Mechanics</h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Push boxes into holes to fill them (box will disappear)</li>
+            <li>Push boxes into enemies or kings to capture them</li>
+            <li>Complete each level to unlock the next one</li>
+            <li>Use Ninja Instinct wisely - you only have 3 uses per level</li>
           </ul>
         </div>
       </CardContent>

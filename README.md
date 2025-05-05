@@ -31,7 +31,7 @@ StealthMate is a turn-based puzzle game that combines chess movement patterns wi
   - **Pawn**: Can see diagonally forward (top-left and top-right)
 - **Kings**: Your targets. Capture all kings to complete the level.
 - **Boxes**: Can be pushed to block enemy sight lines or capture enemies/kings.
-- **Holes**: Cannot be traversed by you or boxes. Enemies can see through them.
+- **Holes**: Cannot be traversed by you. Pushing a box into a hole will fill the hole, making it an empty space (the box disappears).
 
 ### 🥷 Ninja Instinct
 
@@ -49,7 +49,7 @@ Boxes are your most valuable tools:
 - Use boxes to block enemy sight lines
 - Push boxes into enemies to neutralize them
 - Push boxes into kings to capture them
-- Boxes cannot be pushed into holes
+- Push boxes into holes to fill them (the box disappears and the hole becomes an empty space)
 
 ### ⚠️ Game Over
 
@@ -94,6 +94,7 @@ Share your custom levels with friends using level codes:
 
 - Plan your moves carefully - every step counts!
 - Use boxes strategically to block sight lines and create safe paths
+- Push boxes into holes to clear paths
 - Observe enemy vision patterns before moving
 - Sometimes it's better to take a longer route if it's safer
 - Use Ninja Instinct to check if your planned move is safe

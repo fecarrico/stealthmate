@@ -24,8 +24,9 @@ export const useScores = () => {
         setCompletedLevels(JSON.parse(storedCompleted));
       }
       
-      // Load unlocked levels
+      // Load unlocked levels - initialize with correct progression based on completed levels
       const storedUnlocked = localStorage.getItem('stealthmate_unlocked_levels');
+      
       if (storedUnlocked) {
         setUnlockedLevels(JSON.parse(storedUnlocked));
       } else {
@@ -38,7 +39,7 @@ export const useScores = () => {
     }
   }, []);
 
-  // Save best score for a level
+  // Save best score for a level and mark as completed
   const saveBestScore = useCallback((levelId: number, score: number): void => {
     try {
       // Check if this level has a best score or if the new score is better
@@ -49,18 +50,16 @@ export const useScores = () => {
       }
       
       // Mark level as completed
-      if (!completedLevels[levelId]) {
-        const newCompletedLevels = { ...completedLevels, [levelId]: true };
-        setCompletedLevels(newCompletedLevels);
-        localStorage.setItem('stealthmate_completed_levels', JSON.stringify(newCompletedLevels));
-        
-        // Unlock next level (if it exists)
-        const nextLevelId = levelId + 1;
-        if (nextLevelId <= levels.length) {
-          const newUnlockedLevels = { ...unlockedLevels, [nextLevelId]: true };
-          setUnlockedLevels(newUnlockedLevels);
-          localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(newUnlockedLevels));
-        }
+      const newCompletedLevels = { ...completedLevels, [levelId]: true };
+      setCompletedLevels(newCompletedLevels);
+      localStorage.setItem('stealthmate_completed_levels', JSON.stringify(newCompletedLevels));
+      
+      // Unlock next level
+      const nextLevelId = levelId + 1;
+      if (nextLevelId <= levels.length) {
+        const newUnlockedLevels = { ...unlockedLevels, [nextLevelId]: true };
+        setUnlockedLevels(newUnlockedLevels);
+        localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(newUnlockedLevels));
       }
     } catch (error) {
       console.error('Error saving score to localStorage:', error);
@@ -105,7 +104,7 @@ export const useScores = () => {
     // Custom levels are always unlocked
     if (levelId >= 1000) return true;
     
-    // A level is unlocked if it exists in unlockedLevels map
+    // A level is unlocked if it is in the unlockedLevels map
     return unlockedLevels[levelId] || false;
   }, [unlockedLevels]);
 
