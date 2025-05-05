@@ -18,7 +18,8 @@ export const useGameState = () => {
     addToTotalSteps, 
     resetTotalSteps, 
     isLevelCompleted,
-    isLevelUnlocked 
+    isLevelUnlocked,
+    resetAllProgress
   } = useScores();
   const { 
     levelComplete, 
@@ -34,7 +35,6 @@ export const useGameState = () => {
   } = useLevelManager();
   const { movePlayer: processMove, undoMove: processUndo } = useGameMoves(calculateAllSightLines);
 
-
   // Load a level
   const loadLevel = useCallback((levelNumber: number) => {
     console.log('useGameState: loadLevel called with levelNumber:', levelNumber);
@@ -46,7 +46,9 @@ export const useGameState = () => {
   }, [loadLevelData]);
 
   // Load a custom level
-  const loadCustomLevel = useCallback((levelData: LevelData) => {
+  const loadCustomLevel = useCallback((
+    levelData: LevelData
+  ) => {
     const newGameState = loadCustomLevelData(levelData);
     setGameState(newGameState);
   }, [loadCustomLevelData]);
@@ -111,6 +113,7 @@ export const useGameState = () => {
         history: [initialState],
       });
     } else {
+      // Load the same level again but maintain best score
       loadLevel(gameState.level);
     }
     
@@ -149,6 +152,7 @@ export const useGameState = () => {
     closeVictory,
     loadLevel,
     isLevelCompleted,
-    isLevelUnlocked
+    isLevelUnlocked,
+    resetAllProgress
   };
 };

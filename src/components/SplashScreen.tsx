@@ -1,12 +1,32 @@
 
 import React, { useState } from 'react';
-import { Shield, Book, Play, Edit, X } from 'lucide-react';
+import { Shield, Book, Play, Edit, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useGameState } from '@/hooks/useGameState';
+import { toast } from '@/components/ui/sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
 const SplashScreenPage: React.FC = () => {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const { resetAllProgress } = useGameState();
+  
+  const handleResetProgress = () => {
+    resetAllProgress();
+    setShowSettings(false);
+    toast.success("Progress and high scores have been reset");
+  };
   
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
@@ -36,6 +56,15 @@ const SplashScreenPage: React.FC = () => {
           How to Play
         </Button>
       </div>
+      
+      <Button
+        variant="outline"
+        size="icon"
+        className="absolute top-4 right-4 bg-zinc-800 border-zinc-700 hover:bg-zinc-700 text-zinc-300"
+        onClick={() => setShowSettings(true)}
+      >
+        <Settings className="h-5 w-5" />
+      </Button>
       
       {showHowToPlay && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 overflow-y-auto">
@@ -133,6 +162,37 @@ const SplashScreenPage: React.FC = () => {
           </Card>
         </div>
       )}
+      
+      <AlertDialog open={showSettings} onOpenChange={setShowSettings}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Settings</AlertDialogTitle>
+            <AlertDialogDescription>
+              You can reset your game progress and high scores here.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => {
+                toast({
+                  title: "Confirm reset",
+                  description: "Are you sure you want to reset all progress and high scores?",
+                  action: <Button className="bg-red-600 text-white" onClick={handleResetProgress}>Reset</Button>,
+                });
+              }}
+            >
+              Reset All Progress & High Scores
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700">
+              Close
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <div className="absolute bottom-4 right-4 text-xs text-zinc-500">
         Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>

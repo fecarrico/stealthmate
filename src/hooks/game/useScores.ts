@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import levels from '../../levels/levels';
 
@@ -53,7 +54,7 @@ export const useScores = () => {
       setCompletedLevels(newCompletedLevels);
       localStorage.setItem('stealthmate_completed_levels', JSON.stringify(newCompletedLevels));
       
-      // Unlock next level
+      // Unlock next level - without resetting previous unlocked levels
       const nextLevelId = levelId + 1;
       if (nextLevelId <= levels.length) {
         const newUnlockedLevels = { ...unlockedLevels, [nextLevelId]: true };
@@ -64,6 +65,29 @@ export const useScores = () => {
       console.error('Error saving score to localStorage:', error);
     }
   }, [bestScores, completedLevels, unlockedLevels]);
+
+  // Reset all scores and progression
+  const resetAllProgress = useCallback((): void => {
+    try {
+      // Reset best scores
+      setBestScores({});
+      localStorage.removeItem('stealthmate_best_scores');
+      
+      // Reset completed levels
+      setCompletedLevels({});
+      localStorage.removeItem('stealthmate_completed_levels');
+      
+      // Reset unlocked levels - only level 1 is unlocked by default
+      const initialUnlocked = { 1: true };
+      setUnlockedLevels(initialUnlocked);
+      localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(initialUnlocked));
+      
+      // Reset total steps
+      setTotalSteps(0);
+    } catch (error) {
+      console.error('Error resetting progress:', error);
+    }
+  }, []);
 
   // Add number of steps to total
   const addToTotalSteps = useCallback((steps: number): void => {
@@ -103,18 +127,10 @@ export const useScores = () => {
     // Custom levels are always unlocked
     if (levelId >= 1000) return true;
     
-    // A level is unlocked if it has been completed
-    if (completedLevels[levelId]) return true;
-    
-    // A level is unlocked if the previous level has been completed
+    // Previous completed level unlocks the next one
     if (completedLevels[levelId - 1]) return true;
     
-    // A level is unlocked if it has a best score recorded
-    // (which means it was completed at some point)
-    if (bestScores[levelId]) return true;
-    
-    // A level is unlocked if the previous level has a best score
-    // (which means the previous level was completed)
+    // If we have a best score for previous level, next one is unlocked
     if (bestScores[levelId - 1]) return true;
     
     // Otherwise, check if it's in the unlockedLevels map
@@ -130,6 +146,7 @@ export const useScores = () => {
     getBestTotalScore,
     calculateTotalSteps,
     isLevelCompleted,
-    isLevelUnlocked
+    isLevelUnlocked,
+    resetAllProgress
   };
 };
