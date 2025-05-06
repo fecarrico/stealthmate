@@ -97,12 +97,23 @@ export const useScores = () => {
 
   // Check if a level is unlocked
   const isLevelUnlocked = useCallback((levelId: number): boolean => {
-      // Level 1 is always unlocked
-      if (levelId === 1) return true;
-
+      // First tutorial level (101) is always unlocked
+      if (levelId === 101) return true;
+      
+      // Find the previous level ID
+      const allLevels = levels.map(l => l.level).sort((a, b) => a - b);
+      const currentLevelIndex = allLevels.indexOf(levelId);
+      
+      if (currentLevelIndex <= 0) {
+        // This could be the first level or an invalid level ID
+        return levelId === 101; // Only the first tutorial is unlocked by default
+      }
+      
+      const previousLevelId = allLevels[currentLevelIndex - 1];
+      
       // A level is unlocked if the previous level is completed
-      return completedLevels[levelId - 1] || false;
-  }, [completedLevels]);
+      return completedLevels[previousLevelId] || false;
+  }, [completedLevels, levels]);
 
   const areAllOfficialLevelsCompleted = useCallback((): boolean => {
       const lastOfficialLevelId = levels.length;

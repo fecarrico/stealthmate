@@ -115,6 +115,29 @@ const LevelSelectPage: React.FC = () => {
 
   const levels = getLevels();
 
+  // Function to render level type badge
+  const renderLevelBadge = (level: LevelData) => {
+    if (level.isTutorial) {
+      return (
+        <div className="bg-blue-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
+          Tutorial {level.level - 100}
+        </div>
+      );
+    } else if (level.isCustom) {
+      return (
+        <div className="bg-green-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
+          Custom
+        </div>
+      );
+    } else {
+      return (
+        <div className="bg-amber-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
+          Level {level.level}
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4 md:p-8">
         <GameTitle/>
@@ -155,9 +178,7 @@ const LevelSelectPage: React.FC = () => {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent flex items-end p-3">
-                    <div className="bg-amber-600 text-zinc-950 font-bold px-2 py-1 rounded-sm text-xs">
-                      Level {level.level}
-                    </div>
+                    {renderLevelBadge(level)}
                   </div>
                 </div>
                 <CardContent className="p-4">

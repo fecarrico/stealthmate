@@ -33,6 +33,7 @@ export interface LevelData {
     holes?: [number, number][];
     board?: number[][];
     isCustom?: boolean;
+    isTutorial?: boolean;
     boardSize?: number;
 }
 
