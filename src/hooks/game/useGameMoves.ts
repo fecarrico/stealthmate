@@ -26,8 +26,11 @@ export const useGameMoves = (
         const [currentRow, currentCol] = playerPosition;
         const [newRow, newCol] = newPosition;
 
-        // Check if we're pushing a box
-        if (newBoard[newRow][newCol].type === CellType.BOX) {
+        // Get the type of the target cell before we change it
+        const targetCellType = newBoard[newRow][newCol].type;
+
+        // Handle different target cell types
+        if (targetCellType === CellType.BOX) {
           // Calculate where the box will go
           const boxNewPosition = getNewPosition(newPosition, direction);
           const [boxNewRow, boxNewCol] = boxNewPosition;
@@ -48,7 +51,7 @@ export const useGameMoves = (
           else if (targetType === CellType.KING) {
             newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
           } 
-          // If the box hits an enemy, it captures it
+          // If the box hits an enemy, it captures it and becomes a coffin (⚰️)
           else if (
             targetType === CellType.ROOK ||
             targetType === CellType.BISHOP ||
@@ -56,20 +59,28 @@ export const useGameMoves = (
             targetType === CellType.KNIGHT ||
             targetType === CellType.PAWN
           ) {
+            // Mark this box as a coffin by setting a special property
             newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
+            newBoard[boxNewRow][boxNewCol].isCoffin = true;
           } 
           // Otherwise, just move the box
           else {
             newBoard[boxNewRow][boxNewCol].type = CellType.BOX;
           }
         } 
-        // Moving to an empty space
-        else if (newBoard[newRow][newCol].type === CellType.EMPTY) {
+        // Capturing an enemy directly
+        else if (
+          targetCellType === CellType.ROOK ||
+          targetCellType === CellType.BISHOP ||
+          targetCellType === CellType.QUEEN ||
+          targetCellType === CellType.KNIGHT ||
+          targetCellType === CellType.PAWN
+        ) {
           newBoard[currentRow][currentCol].type = CellType.EMPTY;
           newBoard[newRow][newCol].type = CellType.PLAYER;
         }
-        // Capturing a king
-        else if (newBoard[newRow][newCol].type === CellType.KING) {
+        // Moving to an empty space or capturing a king
+        else {
           newBoard[currentRow][currentCol].type = CellType.EMPTY;
           newBoard[newRow][newCol].type = CellType.PLAYER;
         }
@@ -81,7 +92,7 @@ export const useGameMoves = (
         const detected = isPlayerDetected(newPosition, newSightLines);
         
         if (detected) {
-          // Game over
+          // Game over (if lives > 0, useGameLogic will handle it)
           return {
             ...gameState,
             board: newBoard,
@@ -89,7 +100,7 @@ export const useGameMoves = (
             steps: steps + 1,
             sightLines: newSightLines,
             gameOver: true,
-            message: 'You were spotted! Press Z to undo your last move.',
+            message: 'You were spotted!',
             history: [
               ...history,
               {
@@ -101,7 +112,7 @@ export const useGameMoves = (
           };
         }
 
-        // Check for victory
+        // Check for victory (no more kings)
         const victory = allKingsCaptured(newBoard);
 
         // Save the new game state

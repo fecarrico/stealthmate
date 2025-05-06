@@ -1,10 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import GameTitle from './GameTitle';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -43,22 +42,10 @@ const SplashScreen: React.FC = () => {
   };
   
   const handlePlayNow = () => {
-    // If continuing game, navigate to the furthest unlocked level
+    // If continuing game, navigate to the levels page so player can pick where to continue
     if (continueGame) {
-      // Find the highest completed level to determine the next level to play
-      const completedLevelsJSON = localStorage.getItem('stealthmate_completed_levels');
-      if (completedLevelsJSON) {
-        const completedLevels = JSON.parse(completedLevelsJSON);
-        const completedLevelIds = Object.keys(completedLevels).map(Number);
-        
-        if (completedLevelIds.length > 0) {
-          // Find the highest completed level
-          const highestCompletedLevel = Math.max(...completedLevelIds);
-          // Go to the next level, or stay on the highest if it was the last one
-          navigate(`/levels`);
-          return;
-        }
-      }
+      navigate('/levels');
+      return;
     }
     
     // New game - start with the first tutorial level (101)
@@ -66,89 +53,80 @@ const SplashScreen: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
-      <div className="absolute top-4 right-4">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
+      <div className="text-center mb-12">
+        <GameTitle />
+        <p className="text-zinc-400 mt-2">Stealth chess puzzle game</p>
+      </div>
+      
+      <div className="w-full max-w-md flex flex-col items-center">
+        <div className="mb-8 text-center">
+          <p className="text-zinc-300 mb-4">
+            Move your ninja stealth through the chessboard.
+          </p>
+          <p className="text-zinc-400 text-sm">
+            Don't get caught in the sight lines of the chess pieces!
+          </p>
+        </div>
+        
+        <div className="flex flex-col gap-4 w-full max-w-xs">
+          <Button 
+            onClick={handlePlayNow} 
+            className="bg-amber-600 hover:bg-amber-700 text-zinc-950 h-12 text-lg"
+            size="lg"
+          >
+            {continueGame ? "Continue" : "Play Now"}
+          </Button>
+          
+          <Button 
+            onClick={() => navigate("/levels")}
+            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 h-12"
+            size="lg"
+          >
+            Select Level
+          </Button>
+          
+          <Button 
+            onClick={() => navigate("/editor")}
+            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
+            size="lg"
+          >
+            Level Editor
+          </Button>
+        </div>
+        
         <Button 
-          variant="outline" 
-          size="icon"
+          variant="ghost" 
+          className="text-zinc-500 hover:text-zinc-300 mt-8 flex items-center gap-2"
           onClick={() => setResetDialogOpen(true)}
-          className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700"
         >
-          <Settings className="h-5 w-5 text-zinc-400" />
-          <span className="sr-only">Settings</span>
+          <Settings size={16} />
+          Settings
         </Button>
       </div>
       
-      <div className="w-full max-w-md">
-        <div className="space-y-12 flex flex-col items-center">
-          <GameTitle />
-          
-          <p className="text-zinc-400 text-center max-w-xs mx-auto">
-            Navigate through deadly traps and enemies to rescue the king. Use your ninja skills wisely!
-          </p>
-          
-          <div className="flex flex-col gap-4 w-full max-w-xs">
-            <Button 
-              onClick={handlePlayNow} 
-              className="bg-amber-600 hover:bg-amber-700 text-zinc-950 h-12 text-lg"
-              size="lg"
-            >
-              {continueGame ? "Continue" : "Play Now"}
-            </Button>
-            
-            <Button 
-              onClick={() => navigate('/levels')} 
-              className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 h-12"
-              variant="outline"
-              size="lg"
-            >
-              Select Level
-            </Button>
-            
-            <Button 
-              onClick={() => navigate('/editor')} 
-              className="bg-transparent border border-zinc-700 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300"
-              variant="outline"
-              size="lg"
-            >
-              Level Editor
-            </Button>
-          </div>
-          
-          <div className="text-xs text-zinc-500 absolute bottom-4">
-            Created by <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">Felipe Carriço</a>
-          </div>
-        </div>
-      </div>
-      
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-zinc-100">Game Settings</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-300">
-              You can reset your progress or custom levels here.
+            <AlertDialogTitle>Reset Game Data</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              What would you like to reset?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex flex-col gap-4 py-4">
-            <Button
-              variant="destructive"
-              className="w-full"
+          <AlertDialogFooter className="flex-col space-y-2 sm:space-y-0">
+            <AlertDialogAction 
               onClick={handleResetProgress}
+              className="bg-red-600 hover:bg-red-700 text-white w-full"
             >
               Reset All Progress
-            </Button>
-            <Button
-              variant="destructive"
-              className="w-full"
+            </AlertDialogAction>
+            <AlertDialogAction 
               onClick={handleResetCustomLevels}
+              className="bg-orange-600 hover:bg-orange-700 text-white w-full"
             >
               Reset Custom Levels
-            </Button>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 text-zinc-300 border-zinc-700">
-              Cancel
-            </AlertDialogCancel>
+            </AlertDialogAction>
+            <AlertDialogCancel className="w-full">Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

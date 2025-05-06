@@ -6,6 +6,7 @@ export interface GameState {
   board: {
     type: CellType;
     position: [number, number];
+    isCoffin?: boolean;
   }[][];
   playerPosition: [number, number];
   steps: number;
@@ -20,6 +21,7 @@ export interface GameState {
     board: {
       type: CellType;
       position: [number, number];
+      isCoffin?: boolean;
     }[][];
     playerPosition: [number, number];
     steps: number;

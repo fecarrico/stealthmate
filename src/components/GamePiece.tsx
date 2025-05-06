@@ -6,9 +6,10 @@ interface GamePieceProps {
   type: CellType;
   isDetected?: boolean;
   isEditorMode?: boolean;
+  isCoffin?: boolean;
 }
 
-const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false, isEditorMode = false }) => {
+const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false, isEditorMode = false, isCoffin = false }) => {
   const getEmoji = () => {
     switch (type) {
       case CellType.PLAYER:
@@ -22,7 +23,7 @@ const GamePiece: React.FC<GamePieceProps> = ({ type, isDetected = false, isEdito
       case CellType.QUEEN:
         return '♕';
       case CellType.BOX:
-        return '📦';
+        return isCoffin ? '⚰️' : '📦';
       case CellType.KNIGHT:
         return '♘';
       case CellType.PAWN:

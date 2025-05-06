@@ -19,6 +19,15 @@ export const isMoveValid = (
   // Can move to king cells (to capture)
   if (toCell.type === CellType.KING) return true;
   
+  // Can now move to enemy cells (to capture them)
+  if (toCell.type === CellType.ROOK || 
+      toCell.type === CellType.BISHOP || 
+      toCell.type === CellType.QUEEN || 
+      toCell.type === CellType.KNIGHT || 
+      toCell.type === CellType.PAWN) {
+    return true;
+  }
+  
   // Can push boxes
   if (toCell.type === CellType.BOX) {
     const [fromRow, fromCol] = from;
@@ -52,9 +61,8 @@ export const isMoveValid = (
     );
   }
   
-  // Can move to hole cells (player can't step in holes)
+  // Can't move to hole cells (player can't step in holes)
   if (toCell.type === CellType.HOLE) return false;
   
-  // Can't move to cells with enemies
   return false;
 };

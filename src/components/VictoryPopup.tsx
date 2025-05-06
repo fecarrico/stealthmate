@@ -16,7 +16,7 @@ interface VictoryPopupProps {
   isTestMode?: boolean;
   backToEditor?: () => void;
   totalSteps?: number;
-  isFinalVictory?: boolean; // Nova prop
+  isFinalVictory?: boolean;
 }
 
 const VictoryPopup: React.FC<VictoryPopupProps> = ({ 
@@ -27,19 +27,18 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
   isTestMode,
   backToEditor,
   totalSteps,
-  isFinalVictory, // Usar a nova prop
+  isFinalVictory,
 }) => {
   const navigate = useNavigate();
   const { getLevels } = useGameState();
   const { saveBestScore, calculateTotalSteps } = useScores();
-  const levelText = isCustomLevel ? "Custom Level" : `Level ${level}`;
-
+  
   const levels = getLevels();
   const isLastLevel = !isCustomLevel && level >= levels.length;
   
   // Save best score
   useEffect(() => {
-    if (!isCustomLevel && !isTestMode && !isFinalVictory) { // Não salvar score individual se for vitória final (já foi salvo antes)
+    if (!isCustomLevel && !isTestMode && !isFinalVictory) {
       saveBestScore(level, steps);
     }
   }, [level, steps, isCustomLevel, isTestMode, saveBestScore, isFinalVictory]);
@@ -73,7 +72,7 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
     navigate(`/game?levelId=${level + 1}`);
   };
 
-  // Mostrar popup de vitória final se isFinalVictory for true
+  // Final victory popup
   if (isFinalVictory) {
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
@@ -105,7 +104,7 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
     );
   }
 
-  // Renderizar popup de nível individual se não for vitória final
+  // Level victory popup (removed level number from text)
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-8 max-w-md text-center transform animate-scale-in">
@@ -113,7 +112,7 @@ const VictoryPopup: React.FC<VictoryPopupProps> = ({
         <h2 className="text-2xl font-bold text-amber-500 mb-2">Level Complete!</h2>
         {levelName && <p className="text-lg text-zinc-300 mb-4">{levelName}</p>}
         <p className="text-zinc-400 mb-6">
-          Congratulations! You completed {levelText} in {steps} steps.
+          Congratulations! You completed in {steps} steps.
         </p>
         
         <div className="flex justify-center gap-4">

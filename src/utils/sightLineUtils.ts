@@ -12,14 +12,35 @@ export const calculateLineOfSight = (
   const [row, col] = position;
   const boardSize: [number, number] = [board.length, board[0].length];
   
-  const addPositionIfValid = (pos: [number, number]) => {
+  const addPositionIfValid = (pos: [number, number], checkEnemyBlocking: boolean = true) => {
     if (isValidPosition(pos, boardSize)) {
       const cell = getCellAt(board, pos);
-      if (cell && cell.type !== CellType.BOX && cell.type !== CellType.KING) {
-        sightLines.push(pos);
-        return true;
+      if (cell) {
+        const isEnemy = cell.type === CellType.ROOK || 
+                        cell.type === CellType.BISHOP || 
+                        cell.type === CellType.QUEEN ||
+                        cell.type === CellType.KNIGHT || 
+                        cell.type === CellType.PAWN ||
+                        cell.type === CellType.KING;
+
+        // Enemies block sight lines of other enemies (new behavior)
+        if (checkEnemyBlocking && isEnemy && cell.type !== enemyType) {
+          return false;
+        }
+        
+        // Boxes block all sight lines (except for knight)
+        if (cell.type === CellType.BOX && enemyType !== CellType.KNIGHT) {
+          return false;
+        }
+        
+        // Add this position to sight lines if it's not a box (boxes can't be detected)
+        if (cell.type !== CellType.BOX && cell.type !== CellType.KING) {
+          sightLines.push(pos);
+        }
+        
+        // Return if this position blocks further sight
+        return !(cell.type === CellType.BOX || isEnemy);
       }
-      return false;
     }
     return false;
   };
@@ -64,7 +85,7 @@ export const calculateLineOfSight = (
     }
   }
   
-  // Knight moves in L-shape
+  // Knight moves in L-shape - updated to only see at the capture positions, not along the path
   if (enemyType === CellType.KNIGHT) {
     const knightMoves = [
       [-2, -1], [-2, 1], [-1, -2], [-1, 2],
@@ -73,7 +94,8 @@ export const calculateLineOfSight = (
     
     for (const [dr, dc] of knightMoves) {
       const pos: [number, number] = [row + dr, col + dc];
-      addPositionIfValid(pos);
+      // Knights have special movement - they ignore blocking pieces, but only see at destination
+      addPositionIfValid(pos, false);
     }
   }
   

@@ -7,7 +7,7 @@ import { usePlayerMovement } from './usePlayerMovement';
 import { useGameHistory } from './useGameHistory';
 import { LevelData } from '../../utils/levelData';
 import { toast } from '@/components/ui/sonner';
-import { useScores } from './useScores'; // Import useScores
+import { useScores } from './useScores';
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -16,13 +16,15 @@ export const useGameLogic = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [showSightLines, setShowSightLines] = useState<boolean>(false);
   const [ninjaInstinctAvailable, setNinjaInstinctAvailable] = useState<number>(3);
-  const [showFinalVictoryPopup, setShowFinalVictoryPopup] = useState<boolean>(false); // Novo estado para popup final
+  const [showFinalVictoryPopup, setShowFinalVictoryPopup] = useState<boolean>(false);
+  const [lives, setLives] = useState<number>(3);
+  const [isGameOver, setIsGameOver] = useState<boolean>(false);
   
   const { calculateAllSightLines } = useBoard();
   const { movePlayer: processMove } = usePlayerMovement(calculateAllSightLines);
   const { undoMove: processUndo, redoMove: processRedo, resetLevel: processReset } = useGameHistory(calculateAllSightLines);
   const { loadLevel, loadCustomLevel } = useLevelManager();
-  const { saveBestScore, areAllOfficialLevelsCompleted } = useScores(); // Usar useScores
+  const { saveBestScore, areAllOfficialLevelsCompleted } = useScores();
 
   // Initialize game with a level number or custom level data
   const initializeGame = useCallback(async (levelDataOrNumber: number | LevelData, isCustom: boolean = false) => {
@@ -48,7 +50,9 @@ export const useGameLogic = () => {
       setHistory([initialGameState]);
       setCurrentStep(0);
       setNinjaInstinctAvailable(3); // Reset ninja instinct for new level
-      setShowFinalVictoryPopup(false); // Esconder popup final ao carregar novo nível
+      setShowFinalVictoryPopup(false); // Hide popup final when loading new level
+      setLives(3); // Reset lives for new level
+      setIsGameOver(false); // Reset game over state
       return true;
     } catch (error) {
       console.error("Error initializing game:", error);
@@ -58,7 +62,7 @@ export const useGameLogic = () => {
 
   // Move player in a direction
   const movePlayer = useCallback((direction: [number, number]) => {
-    if (!gameState) return;
+    if (!gameState || isGameOver) return;
 
     // Create updated game state with current sight line visibility
     const updatedGameState = {
@@ -77,6 +81,22 @@ export const useGameLogic = () => {
         newGameState.ninjaInstinct = ninjaInstinctAvailable - 1;
       }
       
+      // Handle detection and lives
+      if (newGameState.gameOver && !gameState.gameOver) {
+        // Player was spotted, reduce lives
+        const newLives = lives - 1;
+        setLives(newLives);
+        
+        if (newLives <= 0) {
+          // Game over when no more lives
+          setIsGameOver(true);
+        } else {
+          // Still have lives, allow continuing
+          newGameState.gameOver = false;
+          toast.error(`Spotted! ${newLives} ${newLives === 1 ? 'life' : 'lives'} remaining`);
+        }
+      }
+      
       setGameState(newGameState);
       setHistory([...history.slice(0, currentStep + 1), newGameState]);
       setCurrentStep(currentStep + 1);
@@ -84,7 +104,7 @@ export const useGameLogic = () => {
       // Turn off sight lines after moving
       setShowSightLines(false);
     }
-  }, [gameState, history, currentStep, processMove, showSightLines, ninjaInstinctAvailable]);
+  }, [gameState, history, currentStep, processMove, showSightLines, ninjaInstinctAvailable, lives]);
 
   // Reset level
   const resetLevel = useCallback(() => {
@@ -96,7 +116,9 @@ export const useGameLogic = () => {
     setCurrentStep(0);
     setNinjaInstinctAvailable(3); // Reset Ninja Instinct uses on level reset
     setShowSightLines(false);
-    setShowFinalVictoryPopup(false); // Esconder popup final ao resetar nível
+    setShowFinalVictoryPopup(false); // Hide popup final when resetting level
+    setLives(3); // Reset lives
+    setIsGameOver(false); // Reset game over state
   }, [gameState, processReset]);
 
   // Undo move
@@ -133,29 +155,24 @@ export const useGameLogic = () => {
     loadInitialLevel(1, setGameState);
   }, [loadInitialLevel]);
 
-  // Efeito para verificar a vitória do nível e a vitória final
+  // Effect to check for level victory and final victory
   useEffect(() => {
     if (gameState?.victory && !gameState.isCustomLevel) {
-      // Nível oficial vencido
+      // Official level completed
       saveBestScore(gameState.level, gameState.steps);
 
-      // Verificar se todos os níveis oficiais foram completados
+      // Check if all official levels completed
       if (areAllOfficialLevelsCompleted()) {
         setShowFinalVictoryPopup(true);
       }
     }
   }, [gameState, saveBestScore, areAllOfficialLevelsCompleted]);
+
   // Check if can undo
   const canUndo = currentStep > 0;
   
   // Check if can redo
   const canRedo = history.length > 0 && currentStep < history.length - 1;
-  
-  // Check if game is over
-  const isGameOver = gameState?.gameOver || false;
-  
-  // Check if victory
-  const isVictory = gameState?.victory || false;
 
   return {
     gameState,
@@ -168,9 +185,11 @@ export const useGameLogic = () => {
     ninjaInstinctAvailable,
     showSightLines,
     toggleSightLines,
-    isGameOver,
-    isVictory,
+    isGameOver: gameState?.gameOver || false,
+    isVictory: gameState?.victory || false,
     initializeGame,
-    showFinalVictoryPopup, // Exportar novo estado
+    showFinalVictoryPopup,
+    lives,
+    gameOverState: isGameOver
   };
 };

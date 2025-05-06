@@ -6,9 +6,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import GameLoading from '@/components/GameLoading';
 import { useGameLogic } from '@/hooks/game/useGameLogic';
 import VictoryPopup from '@/components/VictoryPopup';
+import GameOverPopup from '@/components/GameOverPopup';
 import GameHeader from '@/components/game/GameHeader';
 import GameFooter from '@/components/game/GameFooter';
-import { Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import AuthorFooter from '@/components/AuthorFooter';
@@ -44,7 +45,9 @@ const GamePage: React.FC = () => {
     isGameOver,
     isVictory,
     initializeGame,
-    showFinalVictoryPopup, // Obter o novo estado
+    showFinalVictoryPopup,
+    lives,
+    gameOverState
   } = useGameLogic();
 
   // Load level when levelId changes
@@ -177,6 +180,15 @@ const GamePage: React.FC = () => {
       setNinjaInstinctAvailable(prev => Math.max(0, prev - 1));
     }
   };
+
+  // Render ninja emojis based on remaining lives
+  const renderLives = () => {
+    const livesList = [];
+    for (let i = 0; i < lives; i++) {
+      livesList.push(<span key={i} className="text-lg">🥷</span>);
+    }
+    return livesList;
+  };
   
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-4">
@@ -191,7 +203,7 @@ const GamePage: React.FC = () => {
         backToEditor={backToEditor}
       />
       
-      {(isVictory || showFinalVictoryPopup) && ( // Renderizar popup se for vitória de nível OU vitória final
+      {(isVictory || showFinalVictoryPopup) && (
         <VictoryPopup 
           level={gameState.level}
           steps={gameState.steps}
@@ -200,7 +212,14 @@ const GamePage: React.FC = () => {
           isTestMode={mode === 'test'}
           backToEditor={backToEditor}
           totalSteps={totalSteps}
-          isFinalVictory={showFinalVictoryPopup} // Passar prop para indicar vitória final
+          isFinalVictory={showFinalVictoryPopup}
+        />
+      )}
+
+      {gameOverState && (
+        <GameOverPopup 
+          onRestart={resetLevel}
+          onBackToLevels={() => navigate('/levels')}
         />
       )}
       
@@ -208,19 +227,26 @@ const GamePage: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-amber-500">{gameState.levelName}</h2>
           
-          <Button
-            variant="outline"
-            className={`${ninjaInstinctAvailable > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-red-700 hover:bg-red-800'} text-zinc-100 flex items-center gap-2`}
-            onMouseDown={() => handleNinjaInstinct(true)}
-            onMouseUp={() => handleNinjaInstinct(false)}
-            onMouseLeave={() => handleNinjaInstinct(false)}
-            onTouchStart={() => handleNinjaInstinct(true)}
-            onTouchEnd={() => handleNinjaInstinct(false)}
-            disabled={ninjaInstinctAvailable <= 0}
-          >
-            <Eye className="h-4 w-4" />
-            Ninja Instinct: {ninjaInstinctAvailable}
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <Heart className="h-5 w-5 text-red-500" />
+              <div className="flex">{renderLives()}</div>
+            </div>
+            
+            <Button
+              variant="outline"
+              className={`${ninjaInstinctAvailable > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-red-700 hover:bg-red-800'} text-zinc-100 flex items-center gap-2`}
+              onMouseDown={() => handleNinjaInstinct(true)}
+              onMouseUp={() => handleNinjaInstinct(false)}
+              onMouseLeave={() => handleNinjaInstinct(false)}
+              onTouchStart={() => handleNinjaInstinct(true)}
+              onTouchEnd={() => handleNinjaInstinct(false)}
+              disabled={ninjaInstinctAvailable <= 0}
+            >
+              <Eye className="h-4 w-4" />
+              Ninja Instinct: {ninjaInstinctAvailable}
+            </Button>
+          </div>
         </div>
         
         <div className="aspect-square bg-zinc-900 rounded-lg border border-zinc-800 relative">
@@ -278,6 +304,7 @@ const GamePage: React.FC = () => {
         <GameFooter
           steps={gameState.steps}
           ninjaInstinctAvailable={ninjaInstinctAvailable}
+          lives={lives}
         />
       </div>
       
