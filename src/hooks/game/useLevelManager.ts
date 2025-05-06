@@ -1,8 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import levels, { getLevelById } from '../../levels/levels';
-import { LevelData } from '../../utils/levelData';
-import { getCustomLevelFromCode } from '../../utils/levelHelper';
+import { tutorialLevels, regularLevels, masterLevelSequence, getLevelById } from '../../levels/levels';
+import { LevelData, PlayerStart } from '../../utils/levelData';
 import { useBoard } from './useBoard';
 import { GameState } from './types';
 
@@ -11,40 +10,28 @@ export const useLevelManager = () => {
   const [levelComplete, setLevelComplete] = useState(false);
   const [allLevelsComplete, setAllLevelsComplete] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
-  const levelsData = levels;
   
   const { initializeBoard, calculateAllSightLines } = useBoard();  
   
   const getLevels = useCallback((): LevelData[] => {   
-    return levelsData;  
-  }, [levelsData]);
+    return [...tutorialLevels, ...regularLevels];
+  }, []);
   
-  // Get the next level number after completing the current level
-  const getNextLevelNumber = useCallback((currentLevelNumber: number): number => {
-    const currentLevel = getLevelById(currentLevelNumber);
-    if (!currentLevel) return 1; // Default to level 1 if not found
-    
-    // If it's a tutorial level, find the next tutorial or start regular levels
-    if (currentLevel.isTutorial) {
-      // Find the next tutorial level
-      const nextTutorialLevel = levelsData.find(level => 
-        level.isTutorial && level.level > currentLevelNumber
-      );
-      
-      if (nextTutorialLevel) {
-        return nextTutorialLevel.level;
-      }
-      
-      // If no more tutorial levels, start with the first regular level
-      const firstRegularLevel = levelsData.find(level => !level.isTutorial);
-      return firstRegularLevel ? firstRegularLevel.level : 1;
+  const getNextLevelNumber = useCallback((currentLevelId: number | string): number | undefined => {
+    // Ensure currentLevelId is a number for masterLevelSequence lookup
+    const currentIdNum = typeof currentLevelId === 'string' ? parseInt(currentLevelId, 10) : currentLevelId;
+
+    const currentIndex = masterLevelSequence.indexOf(currentIdNum);
+
+    // If current level found and there's a next one in the sequence
+    if (currentIndex !== -1 && currentIndex < masterLevelSequence.length - 1) {
+      return masterLevelSequence[currentIndex + 1];
     }
     
-    // For regular levels, just increment
-    return currentLevelNumber + 1;
-  }, [levelsData]);
-  
-  // Load level
+    // No next level found (end of game for regular levels)
+    return undefined;
+  }, []);
+
   const loadLevel = useCallback((
     levelNumber: number
   ) => {
@@ -67,7 +54,7 @@ export const useLevelManager = () => {
       const sightLines = calculateAllSightLines(board);
       const gameState: GameState = {
         level: levelNumber,
-        board,
+        board: JSON.parse(JSON.stringify(board)), // Deep copy the board
         playerPosition: [...levelData.playerStart] as [number, number],
         steps: 0,
         sightLines,
@@ -75,13 +62,8 @@ export const useLevelManager = () => {
         victory: false,
         message: "",
         ninjaInstinct: 3,
-        levelName: levelData.name || `Level ${levelNumber}`,
         history:[
-          {
-            board: JSON.parse(JSON.stringify(board)),
-            playerPosition: [...levelData.playerStart] as [number, number],
-            steps: 0
-          }
+          // history will be added in useGameLogic after initialization
         ],
       };
       
@@ -90,8 +72,8 @@ export const useLevelManager = () => {
       console.error(`Error loading level ${levelNumber}:`, error);
       return null;
     }
-  }, [initializeBoard, calculateAllSightLines, levelsData]);
-
+  }, [initializeBoard, calculateAllSightLines]);
+  
   const loadInitialLevel = useCallback((
     levelNumber: number, 
     setGameState: (gameState: GameState) => void
@@ -152,23 +134,6 @@ export const useLevelManager = () => {
     setShowVictory(isVisible);
   }, []);
 
-  // Check if custom level from code exists
-  const checkForCustomLevel = useCallback(() => {
-    try {
-      console.log("Attempting to load custom level");
-      const customLevel = getCustomLevelFromCode("");
-      
-      if (customLevel) {
-        console.log("Custom level loaded successfully:", customLevel);
-        // Replace the first level with the custom level
-      } else {
-        console.error("Failed to load custom level from code");
-      }
-    } catch (error) {
-      console.error("Error loading custom level:", error);
-    }
-  }, []);
-
   return {
     levelComplete,
     allLevelsComplete,
@@ -179,8 +144,7 @@ export const useLevelManager = () => {
     setLevelCompleted,
     setVictoryVisible,
     setAllLevelsComplete,
-    getLevels,
-    checkForCustomLevel,
+    getLevels, // Keep getLevels if it's used elsewhere for a different purpose (e.g., level selection screen)
     getNextLevelNumber
   }
 };

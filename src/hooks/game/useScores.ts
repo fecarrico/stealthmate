@@ -1,11 +1,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import levels from '../../levels/levels';
+import { tutorialLevels, regularLevels } from '../../levels/levels';
 
 // Hook for tracking scores and level completion
 export const useScores = () => {
   const [bestScores, setBestScores] = useState<Record<number, number>>({});
   const [completedLevels, setCompletedLevels] = useState<Record<number, boolean>>({});
+  const [unlockedLevels, setUnlockedLevels] = useState<number[]>([]);
   const [totalSteps, setTotalSteps] = useState<number>(0);
 
   // Load scores and completed levels from localStorage when component mounts
@@ -22,30 +23,53 @@ export const useScores = () => {
       if (storedCompleted) {
         setCompletedLevels(JSON.parse(storedCompleted));
       }
+
+      // Load unlocked levels
+      const storedUnlocked = localStorage.getItem('stealthmate_unlocked_levels');
+      if (storedUnlocked) {
+        setUnlockedLevels(JSON.parse(storedUnlocked));
+      }
     } catch (error) {
-      console.error('Error loading scores from localStorage:', error);
+      console.error('Error loading game progress from localStorage:', error);
     }
   }, []);
 
   // Save best score for a level and mark as completed
   const saveBestScore = useCallback((levelId: number, score: number): void => {
     try {
-      // Check if this level has a best score or if the new score is better
-      if (!bestScores[levelId] || score < bestScores[levelId]) {
-        const newBestScores = { ...bestScores, [levelId]: score };
-        setBestScores(newBestScores);
-        localStorage.setItem('stealthmate_best_scores', JSON.stringify(newBestScores));
+      // Use functional update for bestScores to ensure we have the latest state
+      setBestScores(prevBestScores => {
+        const currentBestScore = prevBestScores[levelId];
+        // Only update if there's no existing score or the new score is better
+        if (currentBestScore === undefined || score < currentBestScore) {
+          const newBestScores = { ...prevBestScores, [levelId]: score };
+          localStorage.setItem('stealthmate_best_scores', JSON.stringify(newBestScores));
+          return newBestScores; // Return the new state
+        }
+        return prevBestScores; // Return previous state if no update is needed
       }
-      
-      // Mark level as completed
-      const newCompletedLevels = { ...completedLevels, [levelId]: true };
+      );
       setCompletedLevels(newCompletedLevels);
       localStorage.setItem('stealthmate_completed_levels', JSON.stringify(newCompletedLevels));
       
     } catch (error) {
       console.error('Error saving score to localStorage:', error);
     }
-  }, [bestScores, completedLevels]);
+  }, [bestScores, completedLevels, setBestScores, setCompletedLevels]);
+
+  // Unlock a level
+  const unlockLevel = useCallback((levelId: number): void => {
+    try {
+      // Only unlock if not already unlocked
+      if (!unlockedLevels.includes(levelId)) {
+        const newUnlockedLevels = [...unlockedLevels, levelId];
+        setUnlockedLevels(newUnlockedLevels);
+        localStorage.setItem('stealthmate_unlocked_levels', JSON.stringify(newUnlockedLevels));
+      }
+    } catch (error) {
+      console.error('Error unlocking level:', error);
+    }
+  }, [unlockedLevels]);
 
   // Reset all scores and progression
   const resetAllProgress = useCallback((): void => {
@@ -57,6 +81,10 @@ export const useScores = () => {
       // Reset completed levels
       setCompletedLevels({});
       localStorage.removeItem('stealthmate_completed_levels');
+      
+      // Reset unlocked levels
+      setUnlockedLevels([]);
+      localStorage.removeItem('stealthmate_unlocked_levels');
       
       // Reset total steps
       setTotalSteps(0);
@@ -97,28 +125,23 @@ export const useScores = () => {
 
   // Check if a level is unlocked
   const isLevelUnlocked = useCallback((levelId: number): boolean => {
-      // First tutorial level (101) is always unlocked
-      if (levelId === 101) return true;
-      
-      // Find the previous level ID
-      const allLevels = levels.map(l => l.level).sort((a, b) => a - b);
-      const currentLevelIndex = allLevels.indexOf(levelId);
-      
-      if (currentLevelIndex <= 0) {
-        // This could be the first level or an invalid level ID
-        return levelId === 101; // Only the first tutorial is unlocked by default
-      }
-      
-      const previousLevelId = allLevels[currentLevelIndex - 1];
-      
-      // A level is unlocked if the previous level is completed
-      return completedLevels[previousLevelId] || false;
-  }, [completedLevels, levels]);
+    return levelId === 101 || unlockedLevels.includes(levelId);
+  }, [unlockedLevels]);
 
   const areAllOfficialLevelsCompleted = useCallback((): boolean => {
-      const lastOfficialLevelId = levels.length;
-      return completedLevels[lastOfficialLevelId] || false;
-  }, [completedLevels, levels]);
+    console.log('Checking if all official levels are completed...');
+    console.log('Completed levels state:', completedLevels);
+    // Iterate through all levels and check if all official levels are completed
+    const allLevels = [...tutorialLevels, ...regularLevels];
+    const areAllCompleted = allLevels.every(level => {
+      // An official level is not a tutorial and not a custom level placeholder
+      const isOfficial = !level.isTutorial && !level.isCustomLevel;
+      // If it's an official level, check if it's in completedLevels
+      return !isOfficial || (completedLevels[level.level] === true);
+    });
+    console.log('Result of all official levels completed check:', areAllCompleted);
+    return areAllCompleted;
+  }, [completedLevels]);
 
   return {
     bestScores,
@@ -129,6 +152,7 @@ export const useScores = () => {
     getBestTotalScore,
     calculateTotalSteps,
     isLevelCompleted,
+    unlockLevel,
     isLevelUnlocked,
     resetAllProgress,
     areAllOfficialLevelsCompleted

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import GameArea from './GameArea';
+import { GameArea } from './GameArea';
 import { GameState } from '@/hooks/game/types';
 
 interface GameModeProps {

@@ -18,12 +18,16 @@ const regularLevels: LevelData[] = Object.values(levelModules)
   .map(module => module.default)
   .sort((a, b) => a.level - b.level);
 
-// Combine tutorial levels first, then regular levels
-const levels: LevelData[] = [...tutorialLevels, ...regularLevels];
+// Create a master sequence of level IDs for progression
+export const masterLevelSequence: number[] = [
+  ...tutorialLevels.map(level => level.id),
+  ...regularLevels.map(level => level.id),
+];
 
 // Add a helper function to get level by ID
 export const getLevelById = (id: number): LevelData | undefined => {
-  return levels.find(level => level.id === id || level.level === id);
+ return tutorialLevels.find(level => level.id === id || level.level === id) ||
+ regularLevels.find(level => level.id === id || level.level === id);
 };
 
-export default levels;
+export { tutorialLevels, regularLevels };

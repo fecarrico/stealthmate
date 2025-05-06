@@ -35,6 +35,7 @@ export interface LevelData {
     isCustom?: boolean;
     isTutorial?: boolean;
     boardSize?: number;
+    unlockedBy?: number[];
 }
 
 // Function to load custom level from level code

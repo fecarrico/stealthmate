@@ -4,32 +4,23 @@ import { GameState } from './types';
 
 export const useGameHistory = (calculateAllSightLines: (board: any[][]) => [number, number][]) => {
   // Undo move
-  const undoMove = useCallback((gameState: GameState) => {
-    if (!gameState || gameState.history.length <= 1) return gameState;
+  const undoMove = useCallback((history: GameState[], currentStep: number) => {
+    if (currentStep <= 0 || history.length <= 1) return { newStep: currentStep, restoredState: null };
     
-    const prevStep = gameState.history.length - 2;
-    const prevState = gameState.history[prevStep];
+    const prevStep = currentStep - 1;
+    const prevState = history[prevStep];
     
     if (prevState) {
       const newBoard = JSON.parse(JSON.stringify(prevState.board));
       const newSightLines = calculateAllSightLines(newBoard);
       
       const newGameState: GameState = {
-        ...gameState,
-        board: newBoard,
-        playerPosition: [...prevState.playerPosition] as [number, number],
-        steps: prevState.steps,
-        sightLines: newSightLines,
-        gameOver: false,
-        victory: false,
-        message: '',
-        history: gameState.history.slice(0, prevStep + 1)
+        ...prevState, // Use the entire previous state
+        sightLines: newSightLines, // Recalculate sight lines based on the board
       };
-      
-      return newGameState;
+      return { newStep: prevStep, restoredState: newGameState };
     }
-    
-    return gameState;
+    return { newStep: currentStep, restoredState: null };
   }, [calculateAllSightLines]);
 
   // Redo move
@@ -41,26 +32,25 @@ export const useGameHistory = (calculateAllSightLines: (board: any[][]) => [numb
     
     if (nextState) {
       const newBoard = JSON.parse(JSON.stringify(nextState.board));
-      const newSightLines = calculateAllSightLines(newBoard);
+      const newSightLines = calculateAllSightLines(newBoard); // Recalculate sight lines based on the board
       
-      return {
+      const newGameState: GameState = {
         ...nextState,
         sightLines: newSightLines
       };
+      return { newStep: nextStep, restoredState: newGameState };
     }
-    
-    return gameState;
+    return { newStep: currentStep, restoredState: null };
   }, [calculateAllSightLines]);
 
   // Reset level
-  const resetLevel = useCallback((gameState: GameState) => {
-    if (!gameState) return gameState;
+  const resetLevel = useCallback((initialState: GameState) => {
+    if (!initialState) return initialState;
     
-    const initialState = gameState.history[0];
     const newBoard = JSON.parse(JSON.stringify(initialState.board));
     
     const resetState: GameState = {
-      ...gameState,
+      ...initialState, // Use the initial state as the base
       board: newBoard,
       playerPosition: [...initialState.playerPosition] as [number, number],
       steps: 0,

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import LevelSelector from '@/components/LevelSelector';
+import { LevelSelector } from '@/components/LevelSelector';
 import { LevelData } from '@/utils/levelData';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';

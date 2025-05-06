@@ -3,10 +3,12 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import GameLoading from '@/components/GameLoading';
-import { useGameLogic } from '@/hooks/game/useGameLogic';
-import VictoryPopup from '@/components/VictoryPopup';
+import { useGameLogic } from '@/hooks/game/useGameLogic'; 
+import LevelVictoryPopup from '@/components/LevelVictoryPopup';
+import FinalVictoryPopup from '@/components/FinalVictoryPopup';
 import GameOverPopup from '@/components/GameOverPopup';
-import GameHeader from '@/components/game/GameHeader';
+import GameHeader from '@/components/game/GameHeader'; // This line appears to be a duplicate or misplaced. Removing it.
+import { useIsMobile } from '@/hooks/use-mobile';
 import GameFooter from '@/components/game/GameFooter';
 import { Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,12 +17,10 @@ import AuthorFooter from '@/components/AuthorFooter';
 import GameTitle from '@/components/GameTitle';
 import GameBoard from '@/components/GameBoard';
 import { useScores } from '@/hooks/game/useScores';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { totalSteps } = useScores();
   const isMobile = useIsMobile();
 
   // Extract levelId from query parameters
@@ -53,7 +53,6 @@ const GamePage: React.FC = () => {
   // Load level when levelId changes
   useEffect(() => {
     console.log('Loading game with mode:', mode, 'levelId:', levelId);
-    setIsLoading(true);
     setLoadingError(null);
     
     const loadGame = async () => {
@@ -206,19 +205,21 @@ const GamePage: React.FC = () => {
         backToEditor={backToEditor}
       />
       
-      {(isVictory || showFinalVictoryPopup) && (
-        <VictoryPopup 
+      {showFinalVictoryPopup ? (
+        <FinalVictoryPopup
+          totalSteps={gameState?.steps}
+          onBackToLevels={() => navigate('/levels')}
+        />
+      ) : isVictory && !showFinalVictoryPopup ? (
+        <LevelVictoryPopup
           level={gameState.level}
           steps={gameState.steps}
           levelName={gameState.levelName}
           isCustomLevel={gameState.isCustomLevel}
           isTestMode={mode === 'test'}
           backToEditor={backToEditor}
-          totalSteps={totalSteps}
-          isFinalVictory={showFinalVictoryPopup}
         />
-      )}
-
+      ) : null}
       {gameOverState && (
         <GameOverPopup 
           onRestart={resetLevel}
