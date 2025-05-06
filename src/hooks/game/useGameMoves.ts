@@ -36,7 +36,22 @@ export const useGameMoves = (
           const [boxNewRow, boxNewCol] = boxNewPosition;
           
           // What's in the target cell for the box?
-          const targetType = newBoard[boxNewRow][boxNewCol].type;
+          const boxTargetCell = newBoard[boxNewRow][boxNewCol];
+          if (!boxTargetCell) return gameState;
+          
+          const targetType = boxTargetCell.type;
+          const isValidBoxPush = boxTargetCell && (
+            targetType === CellType.EMPTY || 
+            targetType === CellType.KING || 
+            targetType === CellType.HOLE ||
+            targetType === CellType.ROOK || 
+            targetType === CellType.BISHOP || 
+            targetType === CellType.QUEEN ||
+            targetType === CellType.KNIGHT || 
+            targetType === CellType.PAWN
+          );
+          
+          if (!isValidBoxPush) return gameState;
           
           // Clear original box position and move player
           newBoard[currentRow][currentCol].type = CellType.EMPTY;
@@ -88,8 +103,11 @@ export const useGameMoves = (
         // Calculate new sight lines AFTER the player has moved
         const newSightLines = calculateAllSightLines(newBoard);
         
-        // Check if player is detected in their new position (after movement is complete)
+        // Check if player is detected in their new position
         const detected = isPlayerDetected(newPosition, newSightLines);
+        
+        // Find enemies that can detect the player
+        const detectingEnemies = detected ? findDetectingEnemies(newBoard, newPosition, newSightLines) : [];
         
         if (detected) {
           // Game over (if lives > 0, useGameLogic will handle it)
@@ -101,6 +119,7 @@ export const useGameMoves = (
             sightLines: newSightLines,
             gameOver: true,
             message: 'You were spotted!',
+            detectingEnemies,
             history: [
               ...history,
               {
@@ -139,8 +158,66 @@ export const useGameMoves = (
       
       return gameState;
     },
-    []
+    [calculateAllSightLines]
   );
+
+  // Find enemies that can detect the player
+  const findDetectingEnemies = (
+    board: any[][],
+    playerPosition: [number, number],
+    sightLines: [number, number][]
+  ): [number, number][] => {
+    const detectingEnemies: [number, number][] = [];
+    
+    board.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        const isEnemy = [
+          CellType.ROOK,
+          CellType.BISHOP,
+          CellType.QUEEN,
+          CellType.KNIGHT,
+          CellType.PAWN
+        ].includes(cell.type);
+        
+        if (isEnemy) {
+          // Check if this enemy's sight line includes the player position
+          const canSeePlayer = sightLines.some(([r, c]) => 
+            r === playerPosition[0] && c === playerPosition[1] &&
+            // Need to verify this sight line originated from this enemy
+            isInEnemySightLine(board, [rowIndex, colIndex], playerPosition)
+          );
+          
+          if (canSeePlayer) {
+            detectingEnemies.push([rowIndex, colIndex]);
+          }
+        }
+      });
+    });
+    
+    return detectingEnemies;
+  };
+
+  // Helper to check if a position is in an enemy's sight line
+  const isInEnemySightLine = (
+    board: any[][],
+    enemyPos: [number, number],
+    targetPos: [number, number]
+  ): boolean => {
+    const [enemyRow, enemyCol] = enemyPos;
+    const enemyCell = board[enemyRow][enemyCol];
+    
+    if (!enemyCell) return false;
+    
+    // Get this enemy's specific sight lines
+    const enemySightLines = calculateAllSightLines([
+      [{ type: enemyCell.type, position: enemyPos }]
+    ]);
+    
+    // Check if target position is in this enemy's sight lines
+    return enemySightLines.some(([r, c]) => 
+      r === targetPos[0] && c === targetPos[1]
+    );
+  };
 
   // Undo last move
   const undoMove = useCallback(
@@ -156,9 +233,10 @@ export const useGameMoves = (
         playerPosition: previousState.playerPosition,
         steps: previousState.steps,
         sightLines: calculateAllSightLines(previousState.board),
-        gameOver: false,
+        gameOver: false, // Clear game over state when undoing
         message: '',
         history: history.slice(0, -1),
+        detectingEnemies: [], // Clear detecting enemies
       };
     },
     [calculateAllSightLines]

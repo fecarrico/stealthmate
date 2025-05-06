@@ -30,6 +30,9 @@ export const isMoveValid = (
   
   // Can push boxes
   if (toCell.type === CellType.BOX) {
+    // Can't push coffin boxes
+    if (toCell.isCoffin) return false;
+    
     const [fromRow, fromCol] = from;
     const [toRow, toCol] = to;
     
@@ -46,7 +49,7 @@ export const isMoveValid = (
     // Can't push if nextCell is null (outside the board)
     if (nextCell === null) return false;
     
-    // Can push box into a hole now (box will disappear and hole will become empty)
+    // Can push box into a hole (box will disappear and hole will become empty)
     if (nextCell.type === CellType.HOLE) return true;
     
     // Can push if the next cell is empty or contains an enemy or king

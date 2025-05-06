@@ -9,7 +9,7 @@ import VictoryPopup from '@/components/VictoryPopup';
 import GameOverPopup from '@/components/GameOverPopup';
 import GameHeader from '@/components/game/GameHeader';
 import GameFooter from '@/components/game/GameFooter';
-import { Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import AuthorFooter from '@/components/AuthorFooter';
@@ -109,11 +109,25 @@ const GamePage: React.FC = () => {
   }, [levelId, mode, initializeGame]);
   
   const handleMove = (direction: [number, number]) => {
+    // Don't allow movement when player is detected (until they undo)
+    if (gameState && gameState.gameOver && !gameOverState) {
+      toast.error("You've been spotted! Press Undo to continue.");
+      return;
+    }
+    
     movePlayer(direction);
   };
   
   const handleKeyDown = (e: KeyboardEvent) => {
     if (!gameState || isLoading) return;
+    
+    // Don't allow movement when player is detected (until they undo)
+    if (gameState.gameOver && !gameOverState) {
+      if (e.key === 'z' || e.key === 'Z') {
+        undoMove();
+      }
+      return;
+    }
     
     switch (e.key) {
       case 'ArrowUp':
@@ -171,14 +185,6 @@ const GamePage: React.FC = () => {
     if (show && ninjaInstinctAvailable <= 0) return;
     
     setShowSightLines(show);
-    
-    if (show) {
-      // Only decrease when activating, not when deactivating
-      // We'll update the counter when user releases the button
-    } else if (showSightLines) {
-      // Only decrease the count when the user releases the button and was previously showing
-      setNinjaInstinctAvailable(prev => Math.max(0, prev - 1));
-    }
   };
 
   // Render ninja emojis based on remaining lives
@@ -229,7 +235,6 @@ const GamePage: React.FC = () => {
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
-              <Heart className="h-5 w-5 text-red-500" />
               <div className="flex">{renderLives()}</div>
             </div>
             

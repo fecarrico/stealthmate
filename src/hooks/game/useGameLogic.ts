@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { GameState } from './types'; 
 import { useLevelManager } from './useLevelManager';
@@ -91,9 +90,9 @@ export const useGameLogic = () => {
           // Game over when no more lives
           setIsGameOver(true);
         } else {
-          // Still have lives, allow continuing
-          newGameState.gameOver = false;
+          // Still have lives, allow continuing with undo
           toast.error(`Spotted! ${newLives} ${newLives === 1 ? 'life' : 'lives'} remaining`);
+          // Note: We keep gameOver as true so player must undo to continue
         }
       }
       
@@ -104,7 +103,7 @@ export const useGameLogic = () => {
       // Turn off sight lines after moving
       setShowSightLines(false);
     }
-  }, [gameState, history, currentStep, processMove, showSightLines, ninjaInstinctAvailable, lives]);
+  }, [gameState, history, currentStep, processMove, showSightLines, ninjaInstinctAvailable, lives, isGameOver]);
 
   // Reset level
   const resetLevel = useCallback(() => {
@@ -128,7 +127,13 @@ export const useGameLogic = () => {
     const prevStep = currentStep - 1;
     const prevGameState = history[prevStep];
     
-    setGameState(prevGameState);
+    // Clear gameOver state when undoing
+    const clearedGameState = {
+      ...prevGameState,
+      gameOver: false
+    };
+    
+    setGameState(clearedGameState);
     setCurrentStep(prevStep);
   }, [gameState, currentStep, history]);
 
