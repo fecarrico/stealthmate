@@ -1,4 +1,3 @@
-
 export enum CellType {
   EMPTY = 'empty',
   PLAYER = 'player',
@@ -15,6 +14,7 @@ export enum CellType {
 export interface GameCell {
   type: CellType;
   position: [number, number];
+  isCoffin?: boolean;
 }
 
 export interface EnemyData {
@@ -118,4 +118,4 @@ export const deleteCustomLevels = (): void => {
   } catch (error) {
     console.error("Failed to delete custom levels:", error);
   }
-}; 
+};

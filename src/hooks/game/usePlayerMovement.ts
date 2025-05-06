@@ -23,8 +23,8 @@ export const usePlayerMovement = (
 
     const targetCell = gameState.board[newRow][newCol];
     
-    // Can't move to cells with enemies or holes
-    if (isBlockedCell(targetCell.type)) {
+    // Can't move to holes
+    if (targetCell.type === CellType.HOLE) {
       return gameState;
     }
 
@@ -39,9 +39,18 @@ export const usePlayerMovement = (
     
     // Handle box pushing
     if (targetCell.type === CellType.BOX) {
+      // Cannot push coffin boxes
+      if (targetCell.isCoffin) {
+        return gameState;
+      }
+      
       if (!processBoxPush(newBoard, [newRow, newCol], [rowDelta, colDelta])) {
         return gameState;
       }
+    } 
+    // Handle enemy capture (player can now directly capture enemies)
+    else if (isEnemyCell(targetCell.type)) {
+      // Simply continue - we'll replace the enemy with the player below
     }
 
     // Move player
@@ -82,15 +91,14 @@ export const usePlayerMovement = (
     return row >= 0 && row < board.length && col >= 0 && col < board[0].length;
   };
 
-  // Check if cell type blocks movement
-  const isBlockedCell = (cellType: CellType) => {
+  // Check if cell type is an enemy
+  const isEnemyCell = (cellType: CellType) => {
     return [
       CellType.ROOK,
       CellType.BISHOP,
       CellType.QUEEN,
       CellType.KNIGHT,
-      CellType.PAWN,
-      CellType.HOLE
+      CellType.PAWN
     ].includes(cellType);
   };
 
@@ -118,8 +126,11 @@ export const usePlayerMovement = (
       // Box falls into hole - both disappear (hole becomes empty)
       board[targetRow][targetCol].type = CellType.EMPTY;
       return true;
+    } else if (targetCell.type === CellType.EMPTY) {
+      // Move box to target position
+      board[targetRow][targetCol].type = CellType.BOX;
+      return true;
     } else if (
-      targetCell.type === CellType.EMPTY ||
       targetCell.type === CellType.KING ||
       targetCell.type === CellType.ROOK ||
       targetCell.type === CellType.BISHOP ||
@@ -127,8 +138,9 @@ export const usePlayerMovement = (
       targetCell.type === CellType.KNIGHT ||
       targetCell.type === CellType.PAWN
     ) {
-      // Move box to target position
+      // Move box to target position and mark as coffin
       board[targetRow][targetCol].type = CellType.BOX;
+      board[targetRow][targetCol].isCoffin = true;
       return true;
     }
     
@@ -163,17 +175,6 @@ export const usePlayerMovement = (
     });
     
     return detectingEnemies;
-  };
-
-  // Check if cell type is an enemy
-  const isEnemyCell = (cellType: CellType) => {
-    return [
-      CellType.ROOK,
-      CellType.BISHOP,
-      CellType.QUEEN,
-      CellType.KNIGHT,
-      CellType.PAWN
-    ].includes(cellType);
   };
 
   // Calculate line of sight for a single enemy

@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useState, useEffect } from 'react';
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import GameLoading from '@/components/GameLoading';
 import { useGameLogic } from '@/hooks/game/useGameLogic';
@@ -32,7 +31,6 @@ const GamePage: React.FC = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSightLines, setShowSightLines] = useState(false);
-  const [ninjaInstinctAvailable, setNinjaInstinctAvailable] = useState(3);
 
   const {
     gameState,
@@ -47,7 +45,9 @@ const GamePage: React.FC = () => {
     initializeGame,
     showFinalVictoryPopup,
     lives,
-    gameOverState
+    gameOverState,
+    ninjaInstinctAvailable,
+    toggleSightLines
   } = useGameLogic();
 
   // Load level when levelId changes
@@ -55,7 +55,6 @@ const GamePage: React.FC = () => {
     console.log('Loading game with mode:', mode, 'levelId:', levelId);
     setIsLoading(true);
     setLoadingError(null);
-    setNinjaInstinctAvailable(3); // Reset ninja instinct when loading a new level
     
     const loadGame = async () => {
       try {
@@ -182,9 +181,7 @@ const GamePage: React.FC = () => {
   }
 
   const handleNinjaInstinct = (show: boolean) => {
-    if (show && ninjaInstinctAvailable <= 0) return;
-    
-    setShowSightLines(show);
+    toggleSightLines(show);
   };
 
   // Render ninja emojis based on remaining lives

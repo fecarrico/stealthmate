@@ -22,7 +22,7 @@ export const useGameLogic = () => {
   const { calculateAllSightLines } = useBoard();
   const { movePlayer: processMove } = usePlayerMovement(calculateAllSightLines);
   const { undoMove: processUndo, redoMove: processRedo, resetLevel: processReset } = useGameHistory(calculateAllSightLines);
-  const { loadLevel, loadCustomLevel } = useLevelManager();
+  const { loadLevel, loadCustomLevel, getLevels } = useLevelManager();
   const { saveBestScore, areAllOfficialLevelsCompleted } = useScores();
 
   // Initialize game with a level number or custom level data
@@ -66,7 +66,7 @@ export const useGameLogic = () => {
     // Create updated game state with current sight line visibility
     const updatedGameState = {
       ...gameState,
-      showSightLines: showSightLines
+      showingNinjaInstinct: showSightLines
     };
     
     const newGameState = processMove(direction, updatedGameState);

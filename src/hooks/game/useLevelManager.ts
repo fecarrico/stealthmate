@@ -19,6 +19,31 @@ export const useLevelManager = () => {
     return levelsData;  
   }, [levelsData]);
   
+  // Get the next level number after completing the current level
+  const getNextLevelNumber = useCallback((currentLevelNumber: number): number => {
+    const currentLevel = getLevelById(currentLevelNumber);
+    if (!currentLevel) return 1; // Default to level 1 if not found
+    
+    // If it's a tutorial level, find the next tutorial or start regular levels
+    if (currentLevel.isTutorial) {
+      // Find the next tutorial level
+      const nextTutorialLevel = levelsData.find(level => 
+        level.isTutorial && level.level > currentLevelNumber
+      );
+      
+      if (nextTutorialLevel) {
+        return nextTutorialLevel.level;
+      }
+      
+      // If no more tutorial levels, start with the first regular level
+      const firstRegularLevel = levelsData.find(level => !level.isTutorial);
+      return firstRegularLevel ? firstRegularLevel.level : 1;
+    }
+    
+    // For regular levels, just increment
+    return currentLevelNumber + 1;
+  }, [levelsData]);
+  
   // Load level
   const loadLevel = useCallback((
     levelNumber: number
@@ -155,6 +180,7 @@ export const useLevelManager = () => {
     setVictoryVisible,
     setAllLevelsComplete,
     getLevels,
-    checkForCustomLevel
+    checkForCustomLevel,
+    getNextLevelNumber
   }
 };

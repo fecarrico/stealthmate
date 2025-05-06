@@ -1,17 +1,16 @@
 
-import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Save, Edit, ArrowRight } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
-import { LevelData, saveCustomLevel } from '@/utils/levelData';
-import { useGameState } from '@/hooks/useGameState';
+import { useLevelManager } from '@/hooks/game/useLevelManager';
+import { Shield, Trophy } from 'lucide-react';
 import { useScores } from '@/hooks/game/useScores';
+import '../styles/victoryPopup.css';
 
 interface VictoryPopupProps {
   level: number;
   steps: number;
-  levelName?: string;
+  levelName: string;
   isCustomLevel?: boolean;
   isTestMode?: boolean;
   backToEditor?: () => void;
@@ -19,138 +18,108 @@ interface VictoryPopupProps {
   isFinalVictory?: boolean;
 }
 
-const VictoryPopup: React.FC<VictoryPopupProps> = ({ 
-  level, 
-  steps, 
-  levelName, 
-  isCustomLevel,
-  isTestMode,
+const VictoryPopup: React.FC<VictoryPopupProps> = ({
+  level,
+  steps,
+  levelName,
+  isCustomLevel = false,
+  isTestMode = false,
   backToEditor,
-  totalSteps,
-  isFinalVictory,
+  totalSteps = 0,
+  isFinalVictory = false
 }) => {
   const navigate = useNavigate();
-  const { getLevels } = useGameState();
-  const { saveBestScore, calculateTotalSteps } = useScores();
+  const { getNextLevelNumber } = useLevelManager();
+  const { bestScores, isLevelCompleted } = useScores();
   
-  const levels = getLevels();
-  const isLastLevel = !isCustomLevel && level >= levels.length;
-  
-  // Save best score
-  useEffect(() => {
-    if (!isCustomLevel && !isTestMode && !isFinalVictory) {
-      saveBestScore(level, steps);
-    }
-  }, [level, steps, isCustomLevel, isTestMode, saveBestScore, isFinalVictory]);
+  // Get the best score for this level
+  const bestScore = bestScores[level];
+  const isNewBestScore = bestScore === undefined || steps < bestScore;
 
-  const totalBestSteps = calculateTotalSteps();
-  
-  const handleSaveLevel = () => {
-    try {
-      // Get the custom level from localStorage
-      const storedLevel = localStorage.getItem('testing_level');
-      if (!storedLevel) {
-        toast.error('Level data not found');
-        return;
-      }
-      
-      const levelData = JSON.parse(storedLevel) as LevelData;
-      
-      // Save the level (this will overwrite if it exists with same ID)
-      saveCustomLevel(levelData);
-      toast.success('Level saved successfully');
-      
-      // Navigate to level select
-      navigate('/levels');
-    } catch (error) {
-      toast.error('Failed to save level');
-      console.error('Error saving level:', error);
-    }
-  };
-  
   const handleNextLevel = () => {
-    navigate(`/game?levelId=${level + 1}`);
+    // For test mode, go back to editor
+    if (isTestMode) {
+      if (backToEditor) backToEditor();
+      return;
+    }
+    
+    // For custom levels, return to level selection
+    if (isCustomLevel) {
+      navigate('/levels');
+      return;
+    }
+    
+    // For tutorial levels, find the next tutorial or go to level 1
+    const nextLevelNumber = getNextLevelNumber(level);
+    navigate(`/game?levelId=${nextLevelNumber}`);
   };
 
-  // Final victory popup
-  if (isFinalVictory) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-8 max-w-md text-center transform animate-scale-in">
-          <div className="text-amber-500 text-6xl mb-4">🎉</div>
-          <h2 className="text-3xl font-bold text-amber-500 mb-4">Game Complete!</h2>
-          <p className="text-xl text-zinc-300 mb-4">Congratulations!</p>
-          <p className="text-lg text-zinc-400 mb-2">
-            You have completed all levels!
-          </p>
-          <p className="text-md text-amber-400 mb-6 p-3 bg-zinc-800/50 rounded-md">
-            Total Best Score: {totalBestSteps} steps
-          </p>
-          
-          <div className="text-sm text-zinc-500 mb-6 p-4 bg-zinc-800/50 rounded-md">
-            This game was created by Felipe Carriço.<br/>
-            <a href="https://www.linkedin.com/in/fecarrico" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">
-              LinkedIn Profile
-            </a>
-          </div>
-          
-          <div className="flex justify-center gap-4">
-            <Button onClick={() => navigate('/levels')} className="bg-amber-600 hover:bg-amber-700 text-zinc-950">
-              Back to Levels
-            </Button>
+  const handleBackToMenu = () => {
+    navigate('/');
+  };
+
+  const handleLevelSelect = () => {
+    navigate('/levels');
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-black/50">
+      <div className="victory-popup absolute w-full max-w-md p-8 bg-zinc-900 border border-amber-500 rounded-lg shadow-xl">
+        <div className="flex justify-center">
+          <div className="relative">
+            <div className="victory-trophy text-amber-500">
+              <Trophy size={isFinalVictory ? 120 : 80} strokeWidth={1} />
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  // Level victory popup (removed level number from text)
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-8 max-w-md text-center transform animate-scale-in">
-        <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-        <h2 className="text-2xl font-bold text-amber-500 mb-2">Level Complete!</h2>
-        {levelName && <p className="text-lg text-zinc-300 mb-4">{levelName}</p>}
-        <p className="text-zinc-400 mb-6">
-          Congratulations! You completed in {steps} steps.
-        </p>
         
-        <div className="flex justify-center gap-4">
-          {isTestMode ? (
-            <>
-              <Button 
-                onClick={handleSaveLevel} 
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-              >
-                <Save className="h-4 w-4" />
-                Save Level
-              </Button>
-              <Button 
-                onClick={backToEditor} 
-                className="bg-amber-600 hover:bg-amber-700 flex items-center gap-2"
-              >
-                <Edit className="h-4 w-4" />
-                Back to Editor
-              </Button>
-            </>
-          ) : isCustomLevel ? (
-            <Button onClick={() => navigate('/levels')} className="bg-amber-600 hover:bg-amber-700 text-zinc-950">
-              Back to Levels
+        {isFinalVictory ? (
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold mb-2 text-amber-500 victory-title">Ultimate Victory!</h2>
+            <p className="text-xl text-zinc-300">You've completed all levels with a total of {totalSteps} steps!</p>
+          </div>
+        ) : (
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold mb-2 text-amber-500 victory-title">
+              {levelName}
+            </h2>
+            <p className="text-xl text-zinc-300">
+              Congratulations! You completed in {steps} steps!
+            </p>
+            {bestScore !== undefined && (
+              <p className="text-sm mt-1 text-zinc-400">
+                {isNewBestScore ? "New best score!" : `Best score: ${bestScore}`}
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3">
+          {!isFinalVictory && (
+            <Button 
+              onClick={handleNextLevel} 
+              className="victory-next-btn bg-amber-600 hover:bg-amber-700 text-white py-2"
+            >
+              {isCustomLevel || isTestMode ? "Return to Menu" : "Next Level"}
             </Button>
-          ) : (
-            <>
-              <Button onClick={() => navigate('/levels')} className="bg-zinc-600 hover:bg-zinc-700 text-zinc-100">
-                Back to Levels
-              </Button>
-              <Button 
-                onClick={handleNextLevel} 
-                className="bg-amber-600 hover:bg-amber-700 text-zinc-950 flex items-center gap-2"
-              >
-                Next Level
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </>
           )}
+          
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleLevelSelect} 
+              className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 flex items-center justify-center gap-2"
+            >
+              <Shield size={18} />
+              Level Select
+            </Button>
+            
+            <Button 
+              onClick={handleBackToMenu} 
+              className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
+            >
+              Main Menu
+            </Button>
+          </div>
         </div>
       </div>
     </div>
