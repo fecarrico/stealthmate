@@ -2,9 +2,9 @@
 import { LevelData, CellType } from '../utils/levelData';
 
 const level4: LevelData = {
-  id: 4,
-  level: 4,
-  name: "The cross",
+  id: 5,
+  level: 5,
+  name: "Tutorial Test",
   playerStart: [14, 7],
   kings: [
     [0, 0],
