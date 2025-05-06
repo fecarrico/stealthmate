@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import levels from '../../levels/levels';
+import levels, { getLevelById } from '../../levels/levels';
 import { LevelData } from '../../utils/levelData';
 import { getCustomLevelFromCode } from '../../utils/levelHelper';
 import { useBoard } from './useBoard';
@@ -24,7 +24,8 @@ export const useLevelManager = () => {
     levelNumber: number
   ) => {
     try {
-      const levelData = levelsData[levelNumber - 1];
+      // First try to find the level by exact ID
+      let levelData = getLevelById(levelNumber);
       
       if (!levelData) {
         console.error(`useLevelManager: Level ${levelNumber} not found`);

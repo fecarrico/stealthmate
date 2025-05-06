@@ -4,7 +4,7 @@ import GameTitle from './GameTitle';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -14,23 +14,55 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { useGameState } from '@/hooks/useGameState';
+import { useScores } from '@/hooks/game/useScores';
 
 const SplashScreen: React.FC = () => {
   const navigate = useNavigate();
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const { resetAllProgress, resetCustomLevels } = useGameState();
+  const { isLevelCompleted } = useScores();
+  const [continueGame, setContinueGame] = useState(false);
+  
+  useEffect(() => {
+    // Check if there's any completed level to determine if we show "Continue" instead of "Play Now"
+    const hasStartedGame = localStorage.getItem('stealthmate_completed_levels') !== null;
+    setContinueGame(hasStartedGame);
+  }, []);
   
   const handleResetProgress = () => {
     resetAllProgress();
+    setContinueGame(false);
     setResetDialogOpen(false);
   };
   
   const handleResetCustomLevels = () => {
     resetCustomLevels();
     setResetDialogOpen(false);
+  };
+  
+  const handlePlayNow = () => {
+    // If continuing game, navigate to the furthest unlocked level
+    if (continueGame) {
+      // Find the highest completed level to determine the next level to play
+      const completedLevelsJSON = localStorage.getItem('stealthmate_completed_levels');
+      if (completedLevelsJSON) {
+        const completedLevels = JSON.parse(completedLevelsJSON);
+        const completedLevelIds = Object.keys(completedLevels).map(Number);
+        
+        if (completedLevelIds.length > 0) {
+          // Find the highest completed level
+          const highestCompletedLevel = Math.max(...completedLevelIds);
+          // Go to the next level, or stay on the highest if it was the last one
+          navigate(`/levels`);
+          return;
+        }
+      }
+    }
+    
+    // New game - start with the first tutorial level (101)
+    navigate('/game?levelId=101');
   };
   
   return (
@@ -57,11 +89,11 @@ const SplashScreen: React.FC = () => {
           
           <div className="flex flex-col gap-4 w-full max-w-xs">
             <Button 
-              onClick={() => navigate('/game?levelId=101')} 
+              onClick={handlePlayNow} 
               className="bg-amber-600 hover:bg-amber-700 text-zinc-950 h-12 text-lg"
               size="lg"
             >
-              Play Now
+              {continueGame ? "Continue" : "Play Now"}
             </Button>
             
             <Button 

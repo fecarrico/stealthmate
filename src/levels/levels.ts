@@ -21,4 +21,9 @@ const regularLevels: LevelData[] = Object.values(levelModules)
 // Combine tutorial levels first, then regular levels
 const levels: LevelData[] = [...tutorialLevels, ...regularLevels];
 
+// Add a helper function to get level by ID
+export const getLevelById = (id: number): LevelData | undefined => {
+  return levels.find(level => level.id === id || level.level === id);
+};
+
 export default levels;
