@@ -1,0 +1,18 @@
+
+"Crie um projeto web interativo modular e organizado usando React e TypeScript para um jogo de puzzle baseado em xadrez e furtividade chamado StealthMate. A arquitetura do projeto deve seguir boas práticas, separando a lógica de negócio da interface do usuário, utilizando hooks personalizados (src/hooks/game/), componentes React reutilizáveis (src/components/) e funções utilitárias (src/utils/). Organize as definições de nível em arquivos separados (src/levels/).
+
+Implemente as seguintes mecânicas de jogo detalhadas:
+
+Tabuleiro e Peças:
+
+Crie um tabuleiro interativo onde as peças podem ser posicionadas e movidas. Inclua as seguintes peças: Ninja (Você): Move uma casa em qualquer direção (como um rei no xadrez). Inimigos: Torre: Visão em linhas retas (horizontal e vertical). Bispo: Visão em linhas diagonais. Rainha: Visão em todas as direções (combina torre e bispo). Cavaleiro: Visão em padrões de "L" (como no xadrez). Peão: Visão diagonalmente para frente (superior esquerdo e superior direito). Implemente a lógica de linha de visão para cada tipo de inimigo, considerando obstáculos como caixas. Reis: Objetivos a serem capturados. Caixas: Podem ser empurradas pelo ninja para bloquear linhas de visão inimigas, capturar inimigos/reisem e preencher buracos. Implemente a lógica de empurrar caixas, validando que não podem ser empurradas contra paredes ou outras caixas. Buracos: Não podem ser atravessados pelo ninja. Ao empurrar uma caixa em um buraco, ele é preenchido e se torna um espaço vazio (a caixa desaparece). Ninja Instinct:
+
+Crie uma habilidade especial chamada "Ninja Instinct" que permite ao jogador visualizar temporariamente as linhas de visão de todos os inimigos no tabuleiro. Esta habilidade tem 3 usos por nível. Implemente a funcionalidade para ativar a visualização ao pressionar e segurar um botão. Mantenha o controle dos usos restantes por nível e desabilite a habilidade quando os usos se esgotarem. Sistema de Vidas e Game Over:
+
+O jogador começa com um número definido de vidas (por exemplo, 3 vidas). Quando o jogador entra na linha de visão de um inimigo ou viola outra condição de derrota, ele perde uma vida. Quando o jogador perde todas as suas vidas, o jogo termina e é acionado o estado de Game Over. No Game Over, exiba um popup de Game Over com a opção de recomeçar o nível atual. Popups Adicionais:
+
+Exiba um popup de Vitória de Nível quando o jogador capturar todos os reis de um nível, parabenizando-o e mostrando a pontuação (movimentos). Este popup deve oferecer a opção de avançar para o próximo nível ou voltar para a seleção de níveis. Exiba um popup de Vitória Final quando o jogador completar o último nível disponível, indicando que ele zerou o jogo. Mecânicas Gerais:
+
+Implemente um sistema de níveis com progressão linear: cada nível é desbloqueado após a conclusão do anterior, começando pelo Nível 1. Salve a melhor pontuação (menor número de movimentos) alcançada pelo jogador em cada nível. Inclua funcionalidades para desfazer o último movimento (Z Key) e reiniciar o nível atual (R Key). Editor de Níveis Personalizados:
+
+Crie a estrutura para um editor de níveis onde os usuários podem selecionar e posicionar diferentes tipos de peças no tabuleiro (ninja, reis, inimigos, caixas, buracos). Implemente a funcionalidade para gerar um código único que represente o layout do nível criado. Permita que os usuários importem níveis colando códigos gerados anteriormente. Garanta que o projeto seja responsivo, utilize uma abordagem de estilização organizada e considere um gerenciador de estado apropriado para a complexidade do jogo."
