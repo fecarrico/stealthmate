@@ -1,6 +1,6 @@
 
 <div align="center">
-  <img src="public/logo.png" alt="StealthMate Logo" width="200" style="margin-bottom: 20px"/>
+  <img src="https://cdn-images-1.medium.com/v2/0*sx_b7FZWvLmw-bOp" alt="StealthMate Cover" style="margin-bottom: 20px"/>
   <h1>🕵️‍♂️ StealthMate - A Chess-Based Stealth Puzzle Game</h1>
   <p>
     <strong>Capture all kings while avoiding enemy sight lines!</strong>
