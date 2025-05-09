@@ -9,7 +9,7 @@
 
 ## 🎮 Play Now
 
-Visit [StealthMate](https://stealthmate.lovable.dev) to play the game online!
+Visit [StealthMate](https://stealthmate.comcedilha.com.br/) to play the game online!
 
 ## 🧩 Game Rules
 
@@ -111,10 +111,10 @@ If you enjoy the game, please consider sharing it with friends or providing feed
 
 - [Report a Bug](https://github.com/yourusername/stealthmate/issues)
 - [Feature Request](https://github.com/yourusername/stealthmate/issues)
-- [Creator's Portfolio](https://portfolio-website-url)
+- [Creator's Portfolio](https://www.comcedilha.com.br/)
 
 ---
 
 <div align="center">
-  <p>Built with ❤️ using React, TypeScript, and Lovable</p>
+  <p>Built with ❤️ using React, TypeScript, Lovable and Firebase Studio</p>
 </div>
